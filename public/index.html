@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nebula Visuals — Minecraft 1.21.4</title>
+<meta name="description" content="Nebula Visuals — клиент Minecraft 1.21.4 с визуальными улучшениями и оптимизацией. Скачай лаунчер и играй.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#top">
+      <span class="brand-mark">NV</span>
+      <span class="brand-name">Nebula Visuals</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#features">Возможности</a>
+      <a href="#download">Скачать</a>
+      <a href="#faq">Вопросы</a>
+    </nav>
+    <div class="nav-actions" id="nav-actions">
+      <button class="btn btn-ghost" id="btn-login">Войти</button>
+      <button class="btn btn-primary" id="btn-register">Регистрация</button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ГЛАВНЫЙ ЭКРАН -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-inner">
+      <div class="hero-badge">Minecraft 1.21.4 · Fabric</div>
+      <h1>Клиент <span>Nebula Visuals</span></h1>
+      <p class="hero-sub">
+        Визуальные эффекты, стабильный FPS и умная оптимизация.
+        Один клик — лаунчер сам скачает игру и запустит её.
+      </p>
+      <div class="hero-buttons">
+        <button class="btn btn-primary btn-lg" id="hero-download">Скачать лаунчер</button>
+        <button class="btn btn-ghost btn-lg" id="hero-account">Личный кабинет</button>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><b>1.21.4</b><span>версия игры</span></div>
+        <div class="stat"><b>Fabric</b><span>загрузчик модов</span></div>
+        <div class="stat"><b>0 ₽</b><span>полностью бесплатно</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ВОЗМОЖНОСТИ -->
+  <section class="section" id="features">
+    <h2 class="section-title">Что умеет клиент</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">✦</div>
+        <h3>Визуальные модули</h3>
+        <p>Подсветка игроков, информация о здоровье, координаты, таймеры и ещё десятки настроек — всё включено в один профиль.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <h3>Оптимизация</h3>
+        <p>Отсечение дальних сущностей, частиц и блок-энтити. Больше FPS на слабых ПК без потери картинки.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">↓</div>
+        <h3>Автоустановка</h3>
+        <p>Лаунчер сам скачивает библиотеки, ресурсы и Java. Уже установленные файлы заново не качаются.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">↻</div>
+        <h3>Обновления</h3>
+        <p>Когда выходит новая версия клиента — лаунчер покажет сообщение и обновит только изменившийся мод.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">☰</div>
+        <h3>Профиль игрока</h3>
+        <p>Ник, выделенная память и аватар сохраняются и подтягиваются при каждом запуске.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔒</div>
+        <h3>Личный кабинет</h3>
+        <p>Регистрация на сайте: свой ник, почта и пароль. Настройки можно синхронизировать между ПК.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- СКАЧАТЬ -->
+  <section class="section section-download" id="download">
+    <div class="download-box">
+      <h2>Скачать Nebula Visuals</h2>
+      <p id="download-note">Актуальная версия лаунчера. Установка занимает пару минут.</p>
+      <div class="download-meta" id="download-meta"></div>
+      <button class="btn btn-primary btn-lg" id="download-btn">Скачать установщик</button>
+      <p class="download-hint">Windows 10/11 · 64-bit · требуются права администратора</p>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section" id="faq">
+    <h2 class="section-title">Частые вопросы</h2>
+    <div class="faq">
+      <details>
+        <summary>Куда устанавливается игра?</summary>
+        <p>Файлы игры складываются в <code>C:\NebulaVisuals\game\1.21.4</code>. Лаунчер устанавливается в вашу пользовательскую папку программ.</p>
+      </details>
+      <details>
+        <summary>Почему нужны права администратора?</summary>
+        <p>Чтобы создать папку игры в корне диска <code>C:</code> и корректно прописать ярлыки и систему обновления.</p>
+      </details>
+      <details>
+        <summary>Файлы скачиваются заново каждый запуск?</summary>
+        <p>Нет. Лаунчер проверяет установленные файлы и запускает игру сразу. Скачивается только то, чего не хватает, либо обновившийся мод.</p>
+      </details>
+      <details>
+        <summary>Это официальный клиент?</summary>
+        <p>Нет, Nebula Visuals — неофициальный клиент для лицензионной и пиратской игры в оффлайн-режиме. Не связан с Mojang и Microsoft.</p>
+      </details>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span>© <span id="year"></span> Nebula Visuals</span>
+    <span class="footer-note">Не связан с Mojang / Microsoft</span>
+  </div>
+</footer>
+
+<!-- МОДАЛЬНОЕ ОКНО АККАУНТА -->
+<div class="modal-backdrop" id="auth-modal" hidden>
+  <div class="modal">
+    <button class="modal-close" id="auth-close">×</button>
+
+    <!-- Вход -->
+    <div id="auth-login-view">
+      <h3>Вход в аккаунт</h3>
+      <label>Ник или почта<input type="text" id="login-login" autocomplete="username"></label>
+      <label>Пароль<input type="password" id="login-password" autocomplete="current-password"></label>
+      <div class="form-error" id="login-error"></div>
+      <button class="btn btn-primary btn-block" id="login-submit">Войти</button>
+      <p class="modal-switch">Нет аккаунта? <a href="#" id="switch-to-register">Зарегистрироваться</a></p>
+    </div>
+
+    <!-- Регистрация -->
+    <div id="auth-register-view" hidden>
+      <h3>Регистрация</h3>
+      <label>Ник в Minecraft<input type="text" id="reg-username" placeholder="Steve" autocomplete="username"></label>
+      <label>Почта<input type="email" id="reg-email" placeholder="mail@example.com" autocomplete="email"></label>
+      <label>Пароль<input type="password" id="reg-password" placeholder="минимум 6 символов" autocomplete="new-password"></label>
+      <div class="form-error" id="reg-error"></div>
+      <button class="btn btn-primary btn-block" id="register-submit">Создать аккаунт</button>
+      <p class="modal-switch">Уже есть аккаунт? <a href="#" id="switch-to-login">Войти</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- ЛИЧНЫЙ КАБИНЕТ -->
+<div class="modal-backdrop" id="cabinet-modal" hidden>
+  <div class="modal modal-wide">
+    <button class="modal-close" id="cabinet-close">×</button>
+    <h3>Личный кабинет</h3>
+
+    <div class="cabinet-head">
+      <div class="avatar" id="cab-avatar">?</div>
+      <div class="cabinet-head-info">
+        <b id="cab-username">—</b>
+        <span id="cab-created">—</span>
+        <span id="cab-lastlogin">—</span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="profile">Профиль</button>
+      <button class="tab" data-tab="security">Безопасность</button>
+      <button class="tab" data-tab="sync">Синхронизация с лаунчером</button>
+    </div>
+
+    <div class="tab-body" id="tab-profile">
+      <label>Ник в Minecraft<input type="text" id="cab-input-username"></label>
+      <label>Почта<input type="email" id="cab-input-email"></label>
+      <label>Аватар (PNG/JPEG, до 300 КБ)
+        <input type="file" id="cab-input-avatar" accept="image/png,image/jpeg,image/webp">
+      </label>
+      <label class="row-clear">
+        <input type="checkbox" id="cab-clear-avatar"> Удалить текущий аватар
+      </label>
+      <div class="form-error" id="cab-profile-error"></div>
+      <div class="form-ok" id="cab-profile-ok"></div>
+      <button class="btn btn-primary" id="cab-save-profile">Сохранить профиль</button>
+    </div>
+
+    <div class="tab-body" id="tab-security" hidden>
+      <label>Текущий пароль<input type="password" id="cab-input-current"></label>
+      <label>Новый пароль<input type="password" id="cab-input-next" placeholder="минимум 6 символов"></label>
+      <div class="form-error" id="cab-pass-error"></div>
+      <div class="form-ok" id="cab-pass-ok"></div>
+      <button class="btn btn-primary" id="cab-save-password">Сменить пароль</button>
+    </div>
+
+    <div class="tab-body" id="tab-sync" hidden>
+      <p class="sync-note">
+        Эти настройки можно скопировать в лаунчер — откройте профиль в клиенте
+        и впишите ник и память. Значения хранятся в вашем аккаунте.
+      </p>
+      <label>Выделенная память для лаунчера, МБ
+        <input type="number" id="cab-input-ram" min="1024" max="32768" step="512" value="4096">
+      </label>
+      <div class="sync-grid">
+        <div><span>Ник</span><b id="sync-username">—</b></div>
+        <div><span>Память</span><b id="sync-ram">—</b></div>
+      </div>
+      <button class="btn btn-primary" id="cab-save-ram">Сохранить память</button>
+      <div class="form-ok" id="cab-ram-ok"></div>
+      <button class="btn btn-ghost btn-block" id="cab-logout">Выйти из аккаунта</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="/app.js"></script>
+</body>
+</html>
