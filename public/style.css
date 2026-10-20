@@ -661,6 +661,15 @@ body {
 }
 
 /* ===== PINNED MESSAGE ===== */
+.chat-offline-hint {
+  margin: 0 14px 12px;
+  padding: 10px 14px;
+  background: rgba(255, 77, 102, 0.08);
+  border: 1px solid rgba(255, 77, 102, 0.28);
+  border-radius: 10px;
+  color: #ff8fa3; font-size: 13px;
+}
+.chat-offline-hint[hidden] { display: none; }
 .chat-pinned {
   margin: 14px 14px 0;
   background: rgba(255, 201, 89, 0.08);

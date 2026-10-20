@@ -853,7 +853,14 @@
       if (!statusEl) return;
       statusEl.classList.remove('is-online', 'is-offline');
       statusEl.classList.add(state === 'online' ? 'is-online' : 'is-offline');
-      if (statusText) statusText.textContent = state === 'online' ? 'подключено' : 'нет связи — переподключение...';
+      if (statusText) {
+        statusText.textContent = state === 'online'
+          ? 'подключено'
+          : 'нет связи с чатом — переподключение...';
+      }
+      // при отсутствии связи показываем подсказку
+      const hint = document.getElementById('chat-offline-hint');
+      if (hint) hint.hidden = (state === 'online');
     }
 
     subscribe('chat', function (m) {
