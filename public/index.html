@@ -248,9 +248,15 @@
       <div class="chat-main">
         <div class="chat-messages" id="chat-messages"></div>
         <div class="chat-input-row">
-          <input type="text" id="chat-nick" maxlength="16" autocomplete="off" title="Ник из профиля">
+          <span class="chat-me" id="chat-me">
+            <img src="/logo-icon.png" alt="" class="chat-me-avatar" id="chat-me-avatar">
+            <span class="chat-me-nick" id="chat-me-nick">—</span>
+          </span>
           <input type="text" id="chat-text" placeholder="Напиши сообщение..." maxlength="300" autocomplete="off">
           <button class="btn btn-primary" id="chat-send">Отправить</button>
+        </div>
+        <div class="chat-login-hint" id="chat-login-hint" hidden>
+          <button type="button" class="modal-switch-btn" id="chat-login-btn">Войдите</button>, чтобы писать в чат
         </div>
         <div class="form-msg" id="chat-msg"></div>
       </div>

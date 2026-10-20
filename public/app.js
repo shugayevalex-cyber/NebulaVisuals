@@ -99,6 +99,8 @@
         if (navAuth) navAuth.style.display = 'flex';
         if (navProfile) navProfile.style.display = 'none';
       }
+      // уведомить чат о смене авторизации
+      try { window.dispatchEvent(new CustomEvent('auth-changed')); } catch (e) {}
     },
 
     bindModals() {
@@ -500,6 +502,13 @@
       return;
     }
     const users = loadUsers();
+    const me = (AuthState.user && AuthState.user.username) || '';
+    // свой ник — первым, остальные по свежести
+    alive.sort(function (a, b) {
+      if (a === me) return -1;
+      if (b === me) return 1;
+      return (onlineMap[b].ts || 0) - (onlineMap[a].ts || 0);
+    });
     list.innerHTML = alive.map(function (k) {
       const o = onlineMap[k];
       const u = users.find(function (x) { return x.username === k; });
@@ -507,7 +516,7 @@
       const av = o.a
         ? '<img src="' + o.a + '" alt="" class="online-avatar-img">'
         : '<span class="online-avatar-letter">' + escHtml(k.charAt(0).toUpperCase()) + '</span>';
-      return '<li><span class="online-dot"></span>' + av + '<span class="' + cls + '">' + escHtml(k) + '</span></li>';
+      return '<li' + (k === me ? ' class="is-me"' : '') + '><span class="online-dot"></span>' + av + '<span class="' + cls + '">' + escHtml(k) + '</span>' + (k === me ? '<span class="online-me-tag">вы</span>' : '') + '</li>';
     }).join('');
   }
 
@@ -549,28 +558,38 @@
   // ---------- Инициализация чата ----------
   const chatSend = document.getElementById('chat-send');
   if (chatSend) {
-    const nickInput = document.getElementById('chat-nick');
     const textInput = document.getElementById('chat-text');
     const msg = document.getElementById('chat-msg');
+    const meEl = document.getElementById('chat-me');
+    const meNick = document.getElementById('chat-me-nick');
+    const meAvatar = document.getElementById('chat-me-avatar');
+    const loginHint = document.getElementById('chat-login-hint');
+    const loginBtn = document.getElementById('chat-login-btn');
 
-    // ник из профиля, иначе — сохранённый
-    if (nickInput) {
-      const savedNick = (function () { try { return localStorage.getItem(NICK_KEY) || ''; } catch (e) { return ''; } })();
-      if (AuthState.user) {
-        nickInput.value = AuthState.user.username;
-        nickInput.readOnly = true;
-        nickInput.title = 'Ник берётся из профиля';
-      } else if (savedNick) {
-        nickInput.value = savedNick;
-      } else {
-        // гость — уникальный ник, чтобы не путать людей в онлайне
-        nickInput.value = 'Гость_' + Math.random().toString(36).slice(2, 6);
-        try { localStorage.setItem(NICK_KEY, nickInput.value); } catch (e) {}
-      }
-      nickInput.addEventListener('input', function () {
-        try { localStorage.setItem(NICK_KEY, nickInput.value); } catch (e) {}
-      });
+    // ник — ТОЛЬКО из профиля, изменить нельзя
+    function myNick() {
+      return (AuthState.user && AuthState.user.username) || '';
     }
+
+    function refreshMe() {
+      const nick = myNick();
+      if (meNick) {
+        meNick.textContent = nick || 'Войдите';
+        meNick.className = 'chat-me-nick ' + (nick ? nickClass(nick, (AuthState.user && AuthState.user.email) || '') : '');
+      }
+      if (meAvatar) meAvatar.src = myAvatarFull() || '/logo-icon.png';
+      const logged = !!nick;
+      if (loginHint) loginHint.hidden = logged;
+      if (textInput) textInput.disabled = !logged;
+      if (chatSend) chatSend.disabled = !logged;
+      if (textInput) textInput.placeholder = logged ? 'Напиши сообщение...' : 'Войдите, чтобы писать';
+    }
+    refreshMe();
+
+    if (loginBtn) loginBtn.addEventListener('click', function () {
+      const openBtn = document.getElementById('nav-auth-btn');
+      if (openBtn) openBtn.click();
+    });
 
     // история из localStorage + подписка на новые
     chatMessages = loadChat();
@@ -583,7 +602,8 @@
 
     // пинг в онлайн
     function ping() {
-      const nick = (nickInput && nickInput.value.trim()) || 'Гость';
+      const nick = myNick();
+      if (!nick) return;
       myAvatarSmall().then(function (a) {
         publish(TOPIC_ONLINE, { t: 'p', n: nick, a: a, ts: Date.now() });
         onlineMap[nick] = { ts: Date.now(), a: a };
@@ -595,12 +615,19 @@
     setInterval(renderOnline, 5000);
     window.addEventListener('beforeunload', ping);
 
+    // обновляем чат при входе/выходе
+    window.addEventListener('auth-changed', function () {
+      refreshMe();
+      ping();
+      renderOnline();
+    });
+
     chatSend.addEventListener('click', function () {
-      const nick = (nickInput && nickInput.value.trim()) || 'Гость';
+      const nick = myNick();
       const text = (textInput && textInput.value.trim()) || '';
       if (msg) { msg.className = 'form-msg'; }
+      if (!nick) { if (msg) { msg.textContent = 'Войдите, чтобы писать в чат'; msg.classList.add('err'); } return; }
       if (!text) { if (msg) { msg.textContent = 'Введите сообщение'; msg.classList.add('err'); } return; }
-      if (!/^[A-Za-z0-9_]{2,16}$/.test(nick)) { if (msg) { msg.textContent = 'Ник: 2–16 символов (латиница, цифры, _)'; msg.classList.add('err'); } return; }
 
       myAvatarSmall().then(function (a) {
         const payload = { id: Date.now() + '-' + Math.random().toString(36).slice(2, 7), n: nick, x: text, a: a, ts: Date.now() };
@@ -612,7 +639,7 @@
 
     if (textInput) {
       textInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') { e.preventDefault(); chatSend.click(); }
+        if (e.key === 'Enter') { e.preventDefault(); if (!textInput.disabled) chatSend.click(); }
       });
     }
   }

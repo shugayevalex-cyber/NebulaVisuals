@@ -683,7 +683,16 @@ body {
 .chat-input-row {
   display: flex; gap: 8px; padding: 14px;
   border-top: 1px solid var(--border); background: var(--bg-elevated);
+  align-items: center;
 }
+.chat-me {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 12px 4px 4px; flex-shrink: 0;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.chat-me-avatar { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; display: block; }
+.chat-me-nick { font-size: 13.5px; font-weight: 700; white-space: nowrap; }
 .chat-input-row input {
   flex: 1; background: rgba(255,255,255,0.04);
   border: 1px solid var(--border); border-radius: var(--radius-sm);
@@ -694,8 +703,17 @@ body {
   outline: none; border-color: var(--accent-blue);
   box-shadow: 0 0 0 3px rgba(74,158,255,0.15);
 }
-#chat-nick { max-width: 150px; }
+.chat-input-row input:disabled { opacity: 0.5; cursor: not-allowed; }
 .chat-input-row .btn { padding: 11px 18px; }
+.chat-input-row .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.chat-login-hint {
+  padding: 0 14px 14px; text-align: center;
+  color: var(--muted); font-size: 13.5px;
+  background: var(--bg-elevated);
+}
+.chat-login-hint[hidden] { display: none; }
+.chat-login-hint .modal-switch-btn { font-size: 13.5px; }
 
 .chat-online {
   background: var(--bg-card); backdrop-filter: blur(20px);
@@ -728,6 +746,12 @@ body {
   width: 7px; height: 7px; border-radius: 50%;
   background: var(--accent-green); flex-shrink: 0;
   box-shadow: 0 0 6px rgba(36,224,122,0.7);
+}
+.online-list li.is-me { color: var(--text); }
+.online-me-tag {
+  margin-left: auto; font-size: 10px; font-weight: 700;
+  color: var(--accent-blue); background: rgba(74,158,255,0.12);
+  padding: 1px 7px; border-radius: 999px;
 }
 .online-empty { color: var(--muted); font-size: 13px; }
 
