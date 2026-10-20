@@ -416,6 +416,7 @@
   /* ================= CHAT (ntfy.sh — общий онлайн-чат) ================= */
   const NTFY_BASE = 'https://ntfy.sh';
   const TOPIC_CHAT = 'nebula-visuals-chat-v1';
+  const TOPIC_STATE = 'nebula-visuals-state-v1';
   const TOPIC_ONLINE = 'nebula-visuals-online-v1';
   const CHAT_KEY = 'nebula_chat';
   const CHAT_MAX = 80;
@@ -568,17 +569,49 @@
       id: m.id, n: m.n || m.nick, x: m.x != null ? m.x : m.text,
       a: m.a || '', ts: m.ts || Date.now()
     };
-    publish(TOPIC_CHAT, { t: 'pin', msg: payload });
+    publish(TOPIC_STATE, { t: 'pin', msg: payload });
     savePinned(payload);
     renderChat();
     toast('Сообщение закреплено');
   }
 
   function unpinMessage() {
-    publish(TOPIC_CHAT, { t: 'unpin' });
+    publish(TOPIC_STATE, { t: 'unpin' });
     savePinned(null);
     renderChat();
     toast('Сообщение откреплено');
+  }
+
+  // Загрузка общего состояния (закреплённое сообщение) — видно всем новым посетителям
+  function refreshSharedState() {
+    fetchTopic(TOPIC_STATE, '24h').then(function (items) {
+      if (!items.length) return;
+      const last = items[items.length - 1];
+      if (last && last.t === 'pin' && last.msg) {
+        if (!pinnedMessage || pinnedMessage.id !== last.msg.id) {
+          savePinned(last.msg);
+          renderChat();
+        }
+      } else if (last && last.t === 'unpin') {
+        if (pinnedMessage) { savePinned(null); renderChat(); }
+      }
+    });
+  }
+
+  // Онлайн-список: добираем пинги из истории темы (для новых посетителей)
+  function refreshOnlineFromHistory() {
+    fetchTopic(TOPIC_CHAT, '2m').then(function (items) {
+      let changed = false;
+      items.forEach(function (m) {
+        if (m && m.t === 'p' && m.n) {
+          if (!onlineMap[m.n] || onlineMap[m.n].ts !== m.ts) {
+            onlineMap[m.n] = { ts: m.ts || Date.now(), a: m.a || '' };
+            changed = true;
+          }
+        }
+      });
+      if (changed) renderOnline();
+    });
   }
 
   function renderChat() {
@@ -696,6 +729,27 @@
     } catch (e) {}
   }
 
+  // Чтение последних сообщений темы (ntfy отдаёт JSON-строки)
+  function fetchTopic(topic, since) {
+    return fetch(NTFY_BASE + '/' + topic + '/json?since=' + encodeURIComponent(since))
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (txt) {
+        const out = [];
+        txt.split('\n').forEach(function (line) {
+          line = line.trim();
+          if (!line) return;
+          try {
+            const ev = JSON.parse(line);
+            if (ev.event !== 'message' || !ev.message) return;
+            const data = JSON.parse(ev.message);
+            out.push(data);
+          } catch (e) { /* ignore */ }
+        });
+        return out;
+      })
+      .catch(function () { return []; });
+  }
+
   function subscribe(topic, handler, onStatus) {
     let es = null;
     let closed = false;
@@ -799,17 +853,6 @@
 
     subscribe(TOPIC_CHAT, function (m) {
       if (!m) return;
-      // закрепление / открепление сообщения (делает qqc0d)
-      if (m.t === 'pin') {
-        savePinned(m.msg || null);
-        renderChat();
-        return;
-      }
-      if (m.t === 'unpin') {
-        savePinned(null);
-        renderChat();
-        return;
-      }
       if (!m.n) return;
       if (m.t === 'p') {
         onlineMap[m.n] = { ts: m.ts || Date.now(), a: m.a || '' };
@@ -818,6 +861,25 @@
       }
       addMessage(m);
     }, setStatus);
+
+    // общее состояние: закреплённое сообщение (видно всем)
+    subscribe(TOPIC_STATE, function (m) {
+      if (!m) return;
+      if (m.t === 'pin' && m.msg) {
+        savePinned(m.msg);
+        renderChat();
+        return;
+      }
+      if (m.t === 'unpin') {
+        savePinned(null);
+        renderChat();
+      }
+    }, function () { /* тихо */ });
+
+    refreshSharedState();
+    refreshOnlineFromHistory();
+    setInterval(refreshSharedState, 10000);
+    setInterval(refreshOnlineFromHistory, 5000);
 
     // пинг в онлайн
     function ping() {
