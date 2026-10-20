@@ -1,0 +1,9 @@
+# Nebula Visuals - robots.txt
+User-agent: *
+Allow: /
+
+Sitemap: https://nebula-visuals.fly.dev/sitemap.xml
+
+# Не индексировать служебные пути
+Disallow: /api/
+Disallow: /downloads/

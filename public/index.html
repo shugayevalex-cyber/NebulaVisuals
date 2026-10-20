@@ -3,226 +3,305 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nebula Visuals — Minecraft 1.21.4</title>
+<title>Nebula Visuals — Minecraft 1.21.4 Client</title>
 <meta name="description" content="Nebula Visuals — клиент Minecraft 1.21.4 с визуальными улучшениями и оптимизацией. Скачай лаунчер и играй.">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="/icon.png">
 <link rel="stylesheet" href="/style.css">
+
+<!-- Canonical & SEO -->
+<link rel="canonical" href="https://nebula-visuals.fly.dev/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nebula-visuals.fly.dev/">
+<meta property="og:title" content="Nebula Visuals — Minecraft 1.21.4 Client">
+<meta property="og:description" content="Клиент Minecraft 1.21.4 с визуальными улучшениями, оптимизацией и автоустановкой. Бесплатно.">
+<meta property="og:image" content="https://nebula-visuals.fly.dev/icon.png">
+<meta property="og:site_name" content="Nebula Visuals">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://nebula-visuals.fly.dev/">
+<meta name="twitter:title" content="Nebula Visuals — Minecraft 1.21.4 Client">
+<meta name="twitter:description" content="Клиент Minecraft 1.21.4 с визуальными улучшениями, оптимизацией и автоустановкой. Бесплатно.">
+<meta name="twitter:image" content="https://nebula-visuals.fly.dev/icon.png">
+
+<!-- JSON-LD Schema.org -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Nebula Visuals",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Windows 10/11",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "RUB",
+    "availability": "https://schema.org/InStock"
+  },
+  "description": "Клиент Minecraft 1.21.4 с визуальными улучшениями, оптимизацией FPS и автоустановкой игры.",
+  "url": "https://nebula-visuals.fly.dev/",
+  "image": "https://nebula-visuals.fly.dev/icon.png"
+}
+</script>
 </head>
 <body>
 
-<header class="nav">
+<!-- Анимированный фон -->
+<div class="bg-canvas" id="bg-canvas"></div>
+
+<!-- Частицы -->
+<canvas id="particles" class="particles-canvas"></canvas>
+
+<header class="nav" id="nav">
   <div class="nav-inner">
-    <a class="brand" href="#top">
-      <span class="brand-mark">NV</span>
+    <a class="brand" href="#top" aria-label="Nebula Visuals — главная">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="32" height="32" rx="8" fill="url(#grad)"/>
+          <text x="16" y="22" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="800" fill="white" text-anchor="middle">NV</text>
+        </svg>
+        <defs>
+          <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#4a9eff"/>
+            <stop offset="1" stop-color="#a86bff"/>
+          </linearGradient>
+        </defs>
+      </span>
       <span class="brand-name">Nebula Visuals</span>
     </a>
-    <nav class="nav-links">
-      <a href="#features">Возможности</a>
-      <a href="#download">Скачать</a>
-      <a href="#faq">Вопросы</a>
+    <nav class="nav-links" id="nav-links">
+      <a href="#features" data-i18n="nav.features">Возможности</a>
+      <a href="#download" data-i18n="nav.download">Скачать</a>
+      <a href="#faq" data-i18n="nav.faq">Вопросы</a>
     </nav>
     <div class="nav-actions" id="nav-actions">
-      <button class="btn btn-ghost" id="btn-login">Войти</button>
-      <button class="btn btn-primary" id="btn-register">Регистрация</button>
+      <button class="btn btn-ghost" id="btn-login" data-i18n="nav.login">Войти</button>
+      <button class="btn btn-primary" id="btn-register" data-i18n="nav.register">Регистрация</button>
     </div>
   </div>
 </header>
 
 <main id="top">
 
-  <!-- ГЛАВНЫЙ ЭКРАН -->
-  <section class="hero">
-    <div class="hero-glow"></div>
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-bg-glow"></div>
+    <div class="hero-grid-glow"></div>
     <div class="hero-inner">
-      <div class="hero-badge">Minecraft 1.21.4 · Fabric</div>
-      <h1>Клиент <span>Nebula Visuals</span></h1>
-      <p class="hero-sub">
-        Визуальные эффекты, стабильный FPS и умная оптимизация.
-        Один клик — лаунчер сам скачает игру и запустит её.
-      </p>
+      <div class="hero-badge" data-i18n="hero.badge">Minecraft 1.21.4 · Fabric</div>
+      <h1 class="hero-title">
+        <span class="hero-title-line" data-i18n="hero.title1">Клиент</span>
+        <span class="hero-title-line gradient-text" data-i18n="hero.title2">Nebula Visuals</span>
+      </h1>
+      <p class="hero-sub" data-i18n="hero.sub">Визуальные эффекты, стабильный FPS и умная оптимизация. Один клик — лаунчер сам скачает игру и запустит её.</p>
       <div class="hero-buttons">
-        <button class="btn btn-primary btn-lg" id="hero-download">Скачать лаунчер</button>
-        <button class="btn btn-ghost btn-lg" id="hero-account">Личный кабинет</button>
+        <button class="btn btn-primary btn-lg" id="hero-download" data-i18n="hero.download">
+          <span class="btn-text">Скачать лаунчер</span>
+          <span class="btn-icon" aria-hidden="true">↓</span>
+        </button>
+        <button class="btn btn-ghost btn-lg" id="hero-account" data-i18n="hero.account">Личный кабинет</button>
       </div>
       <div class="hero-stats">
-        <div class="stat"><b>1.21.4</b><span>версия игры</span></div>
-        <div class="stat"><b>Fabric</b><span>загрузчик модов</span></div>
-        <div class="stat"><b>0 ₽</b><span>полностью бесплатно</span></div>
+        <div class="stat">
+          <div class="stat-value">1.21.4</div>
+          <div class="stat-label" data-i18n="hero.stat1">версия игры</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">Fabric</div>
+          <div class="stat-label" data-i18n="hero.stat2">загрузчик модов</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">0 ₽</div>
+          <div class="stat-label" data-i18n="hero.stat3">бесплатно</div>
+        </div>
       </div>
+    </div>
+    <div class="hero-scroll" aria-hidden="true">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M12 5v14M19 12l-7 7-7-7"/>
+      </svg>
     </div>
   </section>
 
-  <!-- ВОЗМОЖНОСТИ -->
+  <!-- FEATURES -->
   <section class="section" id="features">
-    <h2 class="section-title">Что умеет клиент</h2>
-    <div class="cards">
-      <div class="card">
-        <div class="card-icon">✦</div>
-        <h3>Визуальные модули</h3>
-        <p>Подсветка игроков, информация о здоровье, координаты, таймеры и ещё десятки настроек — всё включено в один профиль.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">⚡</div>
-        <h3>Оптимизация</h3>
-        <p>Отсечение дальних сущностей, частиц и блок-энтити. Больше FPS на слабых ПК без потери картинки.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">↓</div>
-        <h3>Автоустановка</h3>
-        <p>Лаунчер сам скачивает библиотеки, ресурсы и Java. Уже установленные файлы заново не качаются.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">↻</div>
-        <h3>Обновления</h3>
-        <p>Когда выходит новая версия клиента — лаунчер покажет сообщение и обновит только изменившийся мод.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">☰</div>
-        <h3>Профиль игрока</h3>
-        <p>Ник, выделенная память и аватар сохраняются и подтягиваются при каждом запуске.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">🔒</div>
-        <h3>Личный кабинет</h3>
-        <p>Регистрация на сайте: свой ник, почта и пароль. Настройки можно синхронизировать между ПК.</p>
-      </div>
+    <div class="section-header">
+      <div class="section-tag" data-i18n="features.tag">Что умеет клиент</div>
+      <h2 class="section-title" data-i18n="features.title">Возможности Nebula Visuals</h2>
+      <p class="section-sub" data-i18n="features.sub">Всё необходимое для комфортной игры в одном клиенте</p>
     </div>
+    <div class="cards" id="features-cards"></div>
   </section>
 
-  <!-- СКАЧАТЬ -->
+  <!-- DOWNLOAD -->
   <section class="section section-download" id="download">
     <div class="download-box">
-      <h2>Скачать Nebula Visuals</h2>
-      <p id="download-note">Актуальная версия лаунчера. Установка занимает пару минут.</p>
+      <div class="download-glow"></div>
+      <div class="download-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="48" height="48" rx="12" fill="url(#dgrad)"/>
+          <path d="M24 14v20M16 26l8 8 8-8" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <defs>
+          <linearGradient id="dgrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#4a9eff"/>
+            <stop offset="1" stop-color="#a86bff"/>
+          </linearGradient>
+        </defs>
+      </div>
+      <h2 class="section-title" data-i18n="download.title">Скачать Nebula Visuals</h2>
+      <p class="section-sub" id="download-note" data-i18n="download.sub">Актуальная версия лаунчера. Установка занимает пару минут.</p>
       <div class="download-meta" id="download-meta"></div>
-      <button class="btn btn-primary btn-lg" id="download-btn">Скачать установщик</button>
-      <p class="download-hint">Windows 10/11 · 64-bit · требуются права администратора</p>
+      <button class="btn btn-primary btn-lg" id="download-btn" data-i18n="download.btn">
+        <span class="btn-text">Скачать установщик</span>
+        <span class="btn-icon" aria-hidden="true">↓</span>
+      </button>
+      <p class="download-hint" data-i18n="download.hint">Windows 10/11 · 64-bit · требуются права администратора</p>
     </div>
   </section>
 
   <!-- FAQ -->
   <section class="section" id="faq">
-    <h2 class="section-title">Частые вопросы</h2>
-    <div class="faq">
-      <details>
-        <summary>Куда устанавливается игра?</summary>
-        <p>Файлы игры складываются в <code>C:\NebulaVisuals\game\1.21.4</code>. Лаунчер устанавливается в вашу пользовательскую папку программ.</p>
-      </details>
-      <details>
-        <summary>Почему нужны права администратора?</summary>
-        <p>Чтобы создать папку игры в корне диска <code>C:</code> и корректно прописать ярлыки и систему обновления.</p>
-      </details>
-      <details>
-        <summary>Файлы скачиваются заново каждый запуск?</summary>
-        <p>Нет. Лаунчер проверяет установленные файлы и запускает игру сразу. Скачивается только то, чего не хватает, либо обновившийся мод.</p>
-      </details>
-      <details>
-        <summary>Это официальный клиент?</summary>
-        <p>Нет, Nebula Visuals — неофициальный клиент для лицензионной и пиратской игры в оффлайн-режиме. Не связан с Mojang и Microsoft.</p>
-      </details>
+    <div class="section-header">
+      <div class="section-tag" data-i18n="faq.tag">Частые вопросы</div>
+      <h2 class="section-title" data-i18n="faq.title">Вопросы и ответы</h2>
     </div>
+    <div class="faq" id="faq-list"></div>
   </section>
 
 </main>
 
-<footer class="footer">
+<footer class="footer" id="footer">
   <div class="footer-inner">
-    <span>© <span id="year"></span> Nebula Visuals</span>
-    <span class="footer-note">Не связан с Mojang / Microsoft</span>
+    <div class="footer-brand">
+      <span class="brand-mark-small" aria-hidden="true">NV</span>
+      <span class="footer-title">Nebula Visuals</span>
+    </div>
+    <p class="footer-copy" data-i18n="footer.copy">© <span id="year"></span> Nebula Visuals</p>
+    <p class="footer-note" data-i18n="footer.note">Не связан с Mojang / Microsoft</p>
   </div>
 </footer>
 
-<!-- МОДАЛЬНОЕ ОКНО АККАУНТА -->
-<div class="modal-backdrop" id="auth-modal" hidden>
+<!-- AUTH MODAL -->
+<div class="modal-backdrop" id="auth-modal" hidden role="dialog" aria-modal="true" aria-labelledby="auth-title">
   <div class="modal">
-    <button class="modal-close" id="auth-close">×</button>
-
-    <!-- Вход -->
-    <div id="auth-login-view">
-      <h3>Вход в аккаунт</h3>
-      <label>Ник или почта<input type="text" id="login-login" autocomplete="username"></label>
-      <label>Пароль<input type="password" id="login-password" autocomplete="current-password"></label>
-      <div class="form-error" id="login-error"></div>
-      <button class="btn btn-primary btn-block" id="login-submit">Войти</button>
-      <p class="modal-switch">Нет аккаунта? <a href="#" id="switch-to-register">Зарегистрироваться</a></p>
+    <button class="modal-close" id="auth-close" aria-label="Закрыть">×</button>
+    
+    <!-- LOGIN -->
+    <div id="auth-login-view" role="form" aria-label="Вход в аккаунт">
+      <h3 id="auth-title" data-i18n="auth.login.title">Вход в аккаунт</h3>
+      <div class="form-group">
+        <label for="login-login" data-i18n="auth.login.nick">Ник или почта</label>
+        <input type="text" id="login-login" autocomplete="username" placeholder="Steve">
+      </div>
+      <div class="form-group">
+        <label for="login-password" data-i18n="auth.login.pass">Пароль</label>
+        <input type="password" id="login-password" autocomplete="current-password" placeholder="••••••">
+      </div>
+      <div class="form-error" id="login-error" aria-live="polite"></div>
+      <button class="btn btn-primary btn-block" id="login-submit" data-i18n="auth.login.submit">Войти</button>
+      <p class="modal-switch">Нет аккаунта? <a href="#" id="switch-to-register" data-i18n="auth.login.register">Зарегистрироваться</a></p>
     </div>
 
-    <!-- Регистрация -->
-    <div id="auth-register-view" hidden>
-      <h3>Регистрация</h3>
-      <label>Ник в Minecraft<input type="text" id="reg-username" placeholder="Steve" autocomplete="username"></label>
-      <label>Почта<input type="email" id="reg-email" placeholder="mail@example.com" autocomplete="email"></label>
-      <label>Пароль<input type="password" id="reg-password" placeholder="минимум 6 символов" autocomplete="new-password"></label>
-      <div class="form-error" id="reg-error"></div>
-      <button class="btn btn-primary btn-block" id="register-submit">Создать аккаунт</button>
-      <p class="modal-switch">Уже есть аккаунт? <a href="#" id="switch-to-login">Войти</a></p>
+    <!-- REGISTER -->
+    <div id="auth-register-view" hidden role="form" aria-label="Регистрация">
+      <h3 id="auth-reg-title" data-i18n="auth.reg.title">Регистрация</h3>
+      <div class="form-group">
+        <label for="reg-username" data-i18n="auth.reg.nick">Ник в Minecraft</label>
+        <input type="text" id="reg-username" autocomplete="username" placeholder="Steve" minlength="3" maxlength="16">
+      </div>
+      <div class="form-group">
+        <label for="reg-email" data-i18n="auth.reg.email">Почта</label>
+        <input type="email" id="reg-email" autocomplete="email" placeholder="mail@example.com">
+      </div>
+      <div class="form-group">
+        <label for="reg-password" data-i18n="auth.reg.pass">Пароль</label>
+        <input type="password" id="reg-password" autocomplete="new-password" placeholder="Минимум 6 символов" minlength="6">
+      </div>
+      <div class="form-error" id="reg-error" aria-live="polite"></div>
+      <button class="btn btn-primary btn-block" id="register-submit" data-i18n="auth.reg.submit">Создать аккаунт</button>
+      <p class="modal-switch">Уже есть аккаунт? <a href="#" id="switch-to-login" data-i18n="auth.reg.login">Войти</a></p>
     </div>
   </div>
 </div>
 
-<!-- ЛИЧНЫЙ КАБИНЕТ -->
-<div class="modal-backdrop" id="cabinet-modal" hidden>
+<!-- PROFILE MODAL -->
+<div class="modal-backdrop" id="cabinet-modal" hidden role="dialog" aria-modal="true" aria-labelledby="cabinet-title">
   <div class="modal modal-wide">
-    <button class="modal-close" id="cabinet-close">×</button>
-    <h3>Личный кабинет</h3>
+    <button class="modal-close" id="cabinet-close" aria-label="Закрыть">×</button>
+    <h3 id="cabinet-title" data-i18n="cabinet.title">Личный кабинет</h3>
 
     <div class="cabinet-head">
-      <div class="avatar" id="cab-avatar">?</div>
+      <div class="avatar" id="cab-avatar" role="img" aria-label="Аватар">?</div>
       <div class="cabinet-head-info">
         <b id="cab-username">—</b>
-        <span id="cab-created">—</span>
-        <span id="cab-lastlogin">—</span>
+        <span id="cab-created" data-i18n="cabinet.joined">На сайте с —</span>
+        <span id="cab-lastlogin" data-i18n="cabinet.last">Последний вход: —</span>
       </div>
     </div>
 
-    <div class="tabs">
-      <button class="tab active" data-tab="profile">Профиль</button>
-      <button class="tab" data-tab="security">Безопасность</button>
-      <button class="tab" data-tab="sync">Синхронизация с лаунчером</button>
+    <div class="tabs" role="tablist" aria-label="Разделы кабинета">
+      <button class="tab active" role="tab" aria-selected="true" data-tab="profile" data-i18n="cabinet.tab.profile">Профиль</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="security" data-i18n="cabinet.tab.security">Безопасность</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="sync" data-i18n="cabinet.tab.sync">Синхронизация</button>
     </div>
 
-    <div class="tab-body" id="tab-profile">
-      <label>Ник в Minecraft<input type="text" id="cab-input-username"></label>
-      <label>Почта<input type="email" id="cab-input-email"></label>
-      <label>Аватар (PNG/JPEG, до 300 КБ)
+    <!-- PROFILE TAB -->
+    <div class="tab-body" id="tab-profile" role="tabpanel" aria-labelledby="cabinet-title">
+      <div class="form-group">
+        <label for="cab-input-username" data-i18n="cabinet.nick">Ник в Minecraft</label>
+        <input type="text" id="cab-input-username" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label for="cab-input-email" data-i18n="cabinet.email">Почта</label>
+        <input type="email" id="cab-input-email" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label data-i18n="cabinet.avatar">Аватар (PNG/JPEG, до 300 КБ)</label>
         <input type="file" id="cab-input-avatar" accept="image/png,image/jpeg,image/webp">
+      </div>
+      <label class="form-group row-clear">
+        <input type="checkbox" id="cab-clear-avatar"> <span data-i18n="cabinet.clear_avatar">Удалить текущий аватар</span>
       </label>
-      <label class="row-clear">
-        <input type="checkbox" id="cab-clear-avatar"> Удалить текущий аватар
-      </label>
-      <div class="form-error" id="cab-profile-error"></div>
-      <div class="form-ok" id="cab-profile-ok"></div>
-      <button class="btn btn-primary" id="cab-save-profile">Сохранить профиль</button>
+      <div class="form-error" id="cab-profile-error" aria-live="polite"></div>
+      <div class="form-ok" id="cab-profile-ok" aria-live="polite"></div>
+      <button class="btn btn-primary btn-block" id="cab-save-profile" data-i18n="cabinet.save">Сохранить профиль</button>
     </div>
 
-    <div class="tab-body" id="tab-security" hidden>
-      <label>Текущий пароль<input type="password" id="cab-input-current"></label>
-      <label>Новый пароль<input type="password" id="cab-input-next" placeholder="минимум 6 символов"></label>
-      <div class="form-error" id="cab-pass-error"></div>
-      <div class="form-ok" id="cab-pass-ok"></div>
-      <button class="btn btn-primary" id="cab-save-password">Сменить пароль</button>
+    <!-- SECURITY TAB -->
+    <div class="tab-body" id="tab-security" hidden role="tabpanel" aria-labelledby="cabinet-title">
+      <div class="form-group">
+        <label for="cab-input-current" data-i18n="cabinet.current_pass">Текущий пароль</label>
+        <input type="password" id="cab-input-current" autocomplete="current-password">
+      </div>
+      <div class="form-group">
+        <label for="cab-input-next" data-i18n="cabinet.new_pass">Новый пароль</label>
+        <input type="password" id="cab-input-next" autocomplete="new-password" placeholder="Минимум 6 символов" minlength="6">
+      </div>
+      <div class="form-error" id="cab-pass-error" aria-live="polite"></div>
+      <div class="form-ok" id="cab-pass-ok" aria-live="polite"></div>
+      <button class="btn btn-primary btn-block" id="cab-save-password" data-i18n="cabinet.change_pass">Сменить пароль</button>
     </div>
 
-    <div class="tab-body" id="tab-sync" hidden>
-      <p class="sync-note">
-        Эти настройки можно скопировать в лаунчер — откройте профиль в клиенте
-        и впишите ник и память. Значения хранятся в вашем аккаунте.
-      </p>
-      <label>Выделенная память для лаунчера, МБ
+    <!-- SYNC TAB -->
+    <div class="tab-body" id="tab-sync" hidden role="tabpanel" aria-labelledby="cabinet-title">
+      <p class="sync-note" data-i18n="cabinet.sync_note">Эти настройки подтягиваются в лаунчер — откройте профиль в клиенте и впишите ник и память.</p>
+      <div class="form-group">
+        <label for="cab-input-ram" data-i18n="cabinet.ram">Выделенная память для лаунчера, МБ</label>
         <input type="number" id="cab-input-ram" min="1024" max="32768" step="512" value="4096">
       </label>
       <div class="sync-grid">
-        <div><span>Ник</span><b id="sync-username">—</b></div>
-        <div><span>Память</span><b id="sync-ram">—</b></div>
+        <div><span data-i18n="cabinet.sync_nick">Ник</span><b id="sync-username">—</b></div>
+        <div><span data-i18n="cabinet.sync_ram">Память</span><b id="sync-ram">—</b></div>
       </div>
-      <button class="btn btn-primary" id="cab-save-ram">Сохранить память</button>
-      <div class="form-ok" id="cab-ram-ok"></div>
-      <button class="btn btn-ghost btn-block" id="cab-logout">Выйти из аккаунта</button>
+      <button class="btn btn-primary btn-block" id="cab-save-ram" data-i18n="cabinet.save_ram">Сохранить память</button>
+      <div class="form-ok" id="cab-ram-ok" aria-live="polite"></div>
+      <button class="btn btn-ghost btn-block" id="cab-logout" data-i18n="cabinet.logout">Выйти из аккаунта</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast" hidden></div>
+<!-- TOAST -->
+<div class="toast" id="toast" hidden aria-live="polite" aria-atomic="true"></div>
 
 <script src="/app.js"></script>
 </body>
