@@ -80,9 +80,18 @@
           <span class="panel-value" id="email-value">—</span>
         </div>
         <div class="panel-row">
+          <span class="panel-label">Идентификатор устройства (HWID)</span>
+          <span class="panel-value mono" id="hwid-value">—</span>
+        </div>
+        <div class="panel-row">
+          <span class="panel-label">Сбросы HWID</span>
+          <span class="panel-value" id="hwid-resets">0</span>
+        </div>
+        <div class="panel-row">
           <span class="panel-label">Роль</span>
           <span class="panel-value" id="role-value">Пользователь</span>
         </div>
+        <div class="panel-note" id="hwid-note">HWID создаётся при первом запуске лаунчера. Привяжите его в разделе «Безопасность», чтобы вход работал только с этого компьютера.</div>
       </div>
 
       <div class="actions">
@@ -97,6 +106,17 @@
 
     <!-- SECURITY TAB -->
     <section class="tab-content" id="tab-security">
+      <div class="panel">
+        <h3 class="panel-title">Привязка к устройству (HWID)</h3>
+        <p class="panel-desc">HWID появляется в лаунчере (вкладка «Профиль») после первого запуска. Вставьте его здесь — и аккаунт можно будет войти только с этого компьютера.</p>
+        <div class="form-group">
+          <label for="hwid-input">HWID устройства</label>
+          <input type="text" id="hwid-input" placeholder="Например: 26ED5731A6344BD5F8423678204349C8" maxlength="64" autocomplete="off">
+        </div>
+        <button class="btn btn-primary" id="save-hwid">Привязать устройство</button>
+        <div class="form-msg" id="hwid-msg"></div>
+      </div>
+
       <div class="panel">
         <h3 class="panel-title">Сменить пароль</h3>
         <div class="form-group">

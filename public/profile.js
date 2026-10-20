@@ -193,6 +193,39 @@
       document.body.removeChild(a);
     });
 
+    // HWID
+    setText('hwid-value', user.hwid || '—');
+    setText('hwid-resets', String(user.hwidResets || 0));
+    const hwidInput = document.getElementById('hwid-input');
+    if (hwidInput && user.hwid) hwidInput.placeholder = user.hwid;
+
+    // привязка / смена устройства
+    const saveHwid = document.getElementById('save-hwid');
+    if (saveHwid) saveHwid.addEventListener('click', () => {
+      const val = (document.getElementById('hwid-input').value || '').trim().toUpperCase();
+      const msg = document.getElementById('hwid-msg');
+      msg.className = 'form-msg';
+      if (!val) { msg.textContent = 'Введите HWID из лаунчера'; msg.classList.add('err'); return; }
+      if (!/^[A-Z0-9]{8,64}$/.test(val)) { msg.textContent = 'HWID: 8–64 символов (латиница и цифры)'; msg.classList.add('err'); return; }
+
+      if (user.hwid) {
+        if (val === String(user.hwid).toUpperCase()) {
+          msg.textContent = 'Этот HWID уже привязан'; msg.classList.add('ok');
+          return;
+        }
+        // смена устройства = сброс
+        user.hwidResets = (user.hwidResets || 0) + 1;
+      }
+      user.hwid = val;
+      if (!updateUser(user)) { msg.textContent = 'Не хватит места в браузере'; msg.classList.add('err'); return; }
+      saveAuth(user);
+      setText('hwid-value', val);
+      setText('hwid-resets', String(user.hwidResets || 0));
+      msg.textContent = 'Устройство привязано'; msg.classList.add('ok');
+      document.getElementById('hwid-input').value = '';
+      toast('HWID привязан');
+    });
+
     // change password
     const savePass = document.getElementById('save-pass');
     if (savePass) savePass.addEventListener('click', () => {

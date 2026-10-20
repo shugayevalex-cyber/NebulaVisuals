@@ -138,6 +138,8 @@ body {
   padding: 24px; margin-bottom: 20px;
 }
 .panel-title { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+.panel-desc { color: var(--text-dim); font-size: 13.5px; margin-bottom: 16px; line-height: 1.6; }
+.mono { font-family: "JetBrains Mono", "Fira Code", Consolas, monospace; font-size: 12.5px; letter-spacing: .5px; }
 
 .panel-row {
   display: flex; align-items: center; justify-content: space-between;

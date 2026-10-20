@@ -177,6 +177,8 @@
         const ok = document.getElementById('modal-auth-ok');
         const u = document.getElementById('modal-login-username').value.trim();
         const p = document.getElementById('modal-login-password').value;
+        const hwidInput = document.getElementById('modal-login-hwid');
+        const hwid = hwidInput ? hwidInput.value.trim().toUpperCase() : '';
         const remember = document.getElementById('modal-remember').checked;
         if (!u || !p) { if (err) err.textContent = 'Введите ник/email и пароль'; return; }
         btn.disabled = true; btn.textContent = 'Вход...';
@@ -184,6 +186,19 @@
           const users = loadUsers();
           const user = users.find(x => x.username.toLowerCase() === u.toLowerCase() || x.email.toLowerCase() === u.toLowerCase());
           if (!user || user.password !== p) { if (err) err.textContent = 'Неверный логин или пароль'; btn.disabled = false; btn.textContent = 'Войти'; return; }
+          // Проверка HWID: аккаунт привязан к устройству
+          if (user.hwid) {
+            if (!hwid) {
+              if (err) err.textContent = 'Аккаунт привязан к устройству — введите HWID';
+              btn.disabled = false; btn.textContent = 'Войти';
+              return;
+            }
+            if (hwid !== String(user.hwid).toUpperCase()) {
+              if (err) err.textContent = 'Аккаунт привязан к другому устройству (HWID не совпадает)';
+              btn.disabled = false; btn.textContent = 'Войти';
+              return;
+            }
+          }
           this.login(user, remember);
           if (ok) ok.textContent = 'Вход выполнен!';
           if (remember && !localStorage.getItem(AUTH_KEY)) {
@@ -194,6 +209,7 @@
           btn.disabled = false; btn.textContent = 'Войти';
           document.getElementById('modal-login-username').value = '';
           document.getElementById('modal-login-password').value = '';
+          if (hwidInput) hwidInput.value = '';
           setTimeout(close, 700);
         }, 600);
       });
@@ -210,6 +226,8 @@
         const email = document.getElementById('modal-reg-email').value.trim().toLowerCase();
         const password = document.getElementById('modal-reg-password').value;
         const confirm = document.getElementById('modal-reg-password-confirm').value;
+        const hwidRegInput = document.getElementById('modal-reg-hwid');
+        const hwidReg = hwidRegInput ? hwidRegInput.value.trim().toUpperCase() : '';
         if (!username || !email || !password || !confirm) { if (err) err.textContent = 'Заполните все поля'; return; }
         if (username.length < 3 || username.length > 16) { if (err) err.textContent = 'Ник: 3–16 символов'; return; }
         if (!/^[A-Za-z0-9_]+$/.test(username)) { if (err) err.textContent = 'Ник: только латиница, цифры и _'; return; }
@@ -223,7 +241,7 @@
 
         btn.disabled = true; btn.textContent = 'Регистрация...';
         setTimeout(() => {
-          const user = { username, email, password, ram: 4096, avatar: '', joined: new Date().toISOString() };
+          const user = { username, email, password, ram: 4096, avatar: '', hwid: hwidReg, hwidResets: 0, joined: new Date().toISOString() };
           users.push(user);
           if (!saveUsers(users)) {
             users.pop();
@@ -243,6 +261,7 @@
           document.getElementById('modal-reg-email').value = '';
           document.getElementById('modal-reg-password').value = '';
           document.getElementById('modal-reg-password-confirm').value = '';
+          if (hwidRegInput) hwidRegInput.value = '';
           setTimeout(() => { switchTab('login'); close(); }, 700);
         }, 600);
       });
