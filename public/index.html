@@ -121,32 +121,26 @@
     </div>
   </section>
 
-  <!-- SCREENSHOTS COMPARISON (INTERACTIVE SLIDER) -->
+  <!-- SCREENSHOTS -->
   <section class="section section-screens" id="screens">
     <div class="section-header">
       <div class="section-tag">Визуальное сравнение</div>
       <h2 class="section-title">Без мода и с модом</h2>
-      <p class="section-sub">Перетащите ползунок, чтобы сравнить</p>
+      <p class="section-sub">Наглядно — что меняет Nebula Visuals</p>
     </div>
-    <div class="comparison-slider" id="comparison-slider">
-      <div class="slider-before">
-        <img src="/screen-with-mod.png" alt="Minecraft с Nebula Visuals" loading="lazy">
+    <div class="screens-grid">
+      <div class="screen-card">
+        <div class="screen-label">Без Nebula Visuals</div>
+        <div class="screen-frame">
+          <img src="/screen-without-mod.png" alt="Minecraft без мода" loading="lazy">
+        </div>
       </div>
-      <div class="slider-after">
-        <img src="/screen-without-mod.png" alt="Minecraft без мода" loading="lazy">
+      <div class="screen-card">
+        <div class="screen-label">С Nebula Visuals</div>
+        <div class="screen-frame">
+          <img src="/screen-with-mod.png" alt="Minecraft с Nebula Visuals" loading="lazy">
+        </div>
       </div>
-      <!-- THIN LINE IN CENTER -->
-      <div class="slider-track"></div>
-      <!-- HANDLE WITH DOT + LARGE HIT AREA -->
-      <div class="slider-handle" id="slider-handle" aria-label="Перетащите для сравнения" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0">
-        <div class="slider-dot"></div>
-        <!-- LARGE INVISIBLE HIT AREA FOR DRAGGING -->
-        <div class="slider-hit-area"></div>
-      </div>
-    </div>
-    <div class="slider-labels">
-      <span class="label-before">С Nebula Visuals</span>
-      <span class="label-after">Без мода</span>
     </div>
   </section>
 
@@ -251,6 +245,14 @@
     </div>
     <div class="chat-box">
       <div class="chat-main">
+        <div class="chat-pinned" id="chat-pinned" hidden>
+          <div class="chat-pinned-head">
+            <span class="chat-pinned-icon">📌</span>
+            <span>Закреплено</span>
+            <button type="button" class="chat-pinned-close" id="chat-pinned-close" title="Открепить">×</button>
+          </div>
+          <div class="chat-pinned-body" id="chat-pinned-body"></div>
+        </div>
         <div class="chat-messages" id="chat-messages"></div>
         <div class="chat-input-row">
           <span class="chat-me" id="chat-me">

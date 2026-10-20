@@ -527,6 +527,59 @@
 
   // ---------- Рендер чата ----------
   let chatMessages = [];
+  let pinnedMessage = null;
+  const PINNED_KEY = 'nebula_chat_pinned';
+  const PIN_OWNER = 'qqc0d';
+
+  function isPinOwner() {
+    return !!(AuthState.user && AuthState.user.username === PIN_OWNER);
+  }
+
+  function loadPinned() {
+    try { pinnedMessage = JSON.parse(localStorage.getItem(PINNED_KEY)); }
+    catch (e) { pinnedMessage = null; }
+  }
+  function savePinned(m) {
+    pinnedMessage = m || null;
+    try {
+      if (pinnedMessage) localStorage.setItem(PINNED_KEY, JSON.stringify(pinnedMessage));
+      else localStorage.removeItem(PINNED_KEY);
+    } catch (e) {}
+    renderPinned();
+  }
+
+  function renderPinned() {
+    const box = document.getElementById('chat-pinned');
+    const body = document.getElementById('chat-pinned-body');
+    if (!box || !body) return;
+    if (!pinnedMessage) { box.hidden = true; return; }
+    const users = loadUsers();
+    const nick = pinnedMessage.n || pinnedMessage.nick || 'Гость';
+    const text = pinnedMessage.x != null ? pinnedMessage.x : (pinnedMessage.text || '');
+    const u = users.find(function (x) { return x.username === nick; });
+    const cls = nickClass(nick, u ? u.email : '');
+    body.innerHTML = '<span class="chat-pinned-nick ' + cls + '">' + escHtml(nick) + '</span>' +
+      '<span class="chat-pinned-text">' + escHtml(text) + '</span>';
+    box.hidden = false;
+  }
+
+  function pinMessage(m) {
+    const payload = {
+      id: m.id, n: m.n || m.nick, x: m.x != null ? m.x : m.text,
+      a: m.a || '', ts: m.ts || Date.now()
+    };
+    publish(TOPIC_CHAT, { t: 'pin', msg: payload });
+    savePinned(payload);
+    renderChat();
+    toast('Сообщение закреплено');
+  }
+
+  function unpinMessage() {
+    publish(TOPIC_CHAT, { t: 'unpin' });
+    savePinned(null);
+    renderChat();
+    toast('Сообщение откреплено');
+  }
 
   function renderChat() {
     const box = document.getElementById('chat-messages');
@@ -536,6 +589,8 @@
       return;
     }
     const users = loadUsers();
+    const canPin = isPinOwner();
+    const pinId = pinnedMessage ? pinnedMessage.id : null;
     let html = '';
     let lastDay = '';
     chatMessages.forEach(function (m) {
@@ -553,12 +608,17 @@
       const av = m.a
         ? '<img src="' + m.a + '" alt="" class="chat-avatar-img">'
         : '<span class="chat-avatar-letter">' + escHtml(nick.charAt(0).toUpperCase()) + '</span>';
+      const isPinned = pinId && m.id === pinId;
+      const pinBtn = canPin
+        ? '<button type="button" class="chat-pin-btn' + (isPinned ? ' is-pinned' : '') + '" data-pin-id="' + escHtml(m.id || '') + '" title="' + (isPinned ? 'Открепить' : 'Закрепить') + '">📌</button>'
+        : '';
       html += '<div class="chat-msg">' +
         '<div class="chat-avatar">' + av + '</div>' +
         '<div class="chat-body">' +
           '<div class="chat-head">' +
             '<span class="' + cls + '">' + escHtml(nick) + '</span>' +
             '<span class="chat-time">' + escHtml(formatMsgTime(ts)) + '</span>' +
+            pinBtn +
           '</div>' +
           '<div class="chat-text">' + escHtml(text) + '</div>' +
         '</div>' +
@@ -566,6 +626,17 @@
     });
     box.innerHTML = html;
     box.scrollTop = box.scrollHeight;
+
+    // обработчики кнопок закрепления
+    box.querySelectorAll('.chat-pin-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-pin-id');
+        if (pinnedMessage && pinnedMessage.id === id) { unpinMessage(); return; }
+        const msg = chatMessages.find(function (x) { return x.id === id; });
+        if (msg) pinMessage(msg);
+      });
+    });
   }
 
   // ---------- Онлайн ----------
@@ -708,6 +779,12 @@
 
     // история из localStorage + подписка на новые
     chatMessages = loadChat();
+    loadPinned();
+    renderPinned();
+
+    // кнопка открепления
+    const pinClose = document.getElementById('chat-pinned-close');
+    if (pinClose) pinClose.addEventListener('click', function () { unpinMessage(); });
     renderChat();
 
     // одна подписка на всё: сообщения + присутствие
@@ -721,7 +798,19 @@
     }
 
     subscribe(TOPIC_CHAT, function (m) {
-      if (!m || !m.n) return;
+      if (!m) return;
+      // закрепление / открепление сообщения (делает qqc0d)
+      if (m.t === 'pin') {
+        savePinned(m.msg || null);
+        renderChat();
+        return;
+      }
+      if (m.t === 'unpin') {
+        savePinned(null);
+        renderChat();
+        return;
+      }
+      if (!m.n) return;
       if (m.t === 'p') {
         onlineMap[m.n] = { ts: m.ts || Date.now(), a: m.a || '' };
         renderOnline();
@@ -750,6 +839,8 @@
       refreshMe();
       ping();
       renderOnline();
+      renderPinned();
+      renderChat();
     });
 
     chatSend.addEventListener('click', function () {
