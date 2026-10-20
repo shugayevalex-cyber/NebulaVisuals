@@ -332,9 +332,21 @@
     });
   }
 
-  /* ================= CHAT ================= */
+  /* ================= CHAT (ntfy.sh — общий онлайн-чат) ================= */
+  const NTFY_BASE = 'https://ntfy.sh';
+  const TOPIC_CHAT = 'nebula-visuals-chat-v1';
+  const TOPIC_ONLINE = 'nebula-visuals-online-v1';
   const CHAT_KEY = 'nebula_chat';
-  const CHAT_MAX = 120;
+  const CHAT_MAX = 150;
+  const NICK_KEY = 'nebula_chat_nick';
+
+  const MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+
+  function escHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
 
   function loadChat() {
     try { return JSON.parse(localStorage.getItem(CHAT_KEY)) || []; } catch (e) { return []; }
@@ -343,106 +355,218 @@
     try { localStorage.setItem(CHAT_KEY, JSON.stringify(list.slice(-CHAT_MAX))); } catch (e) {}
   }
 
-  function escHtml(s) {
-    return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  function dayKey(ts) {
+    const d = new Date(ts);
+    return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
   }
+  function formatDay(ts) {
+    const d = new Date(ts);
+    let s = d.getDate() + ' ' + MONTHS[d.getMonth()];
+    if (d.getFullYear() !== new Date().getFullYear()) s += ' ' + d.getFullYear();
+    return s;
+  }
+  function formatMsgTime(ts) {
+    const d = new Date(ts);
+    const time = d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    if (dayKey(ts) === dayKey(Date.now())) return time;
+    return formatDay(ts) + ', ' + time;
+  }
+
+  // Аватар: маленькая копия (48x48 JPEG) — чтобы влезало в сообщение
+  function makeAvatarSmall(dataUrl) {
+    return new Promise(function (resolve) {
+      if (!dataUrl) return resolve('');
+      const img = new Image();
+      img.onload = function () {
+        try {
+          const c = document.createElement('canvas');
+          c.width = 48; c.height = 48;
+          const ctx = c.getContext('2d');
+          const s = Math.min(img.width, img.height);
+          const sx = (img.width - s) / 2, sy = (img.height - s) / 2;
+          ctx.drawImage(img, sx, sy, s, s, 0, 0, 48, 48);
+          const out = c.toDataURL('image/jpeg', 0.6);
+          resolve(out.length < 3000 ? out : '');
+        } catch (e) { resolve(''); }
+      };
+      img.onerror = function () { resolve(''); };
+      img.src = dataUrl;
+    });
+  }
+
+  function myAvatarSmall() {
+    const a = AuthState.user;
+    if (!a) return Promise.resolve('');
+    const users = loadUsers();
+    const u = users.find(function (x) { return x.username === a.username; });
+    return Promise.resolve((u && (u.avatarSmall || '')) || '');
+  }
+
+  // ---------- Рендер чата ----------
+  let chatMessages = [];
 
   function renderChat() {
     const box = document.getElementById('chat-messages');
     if (!box) return;
-    const list = loadChat();
-    if (list.length === 0) {
+    if (chatMessages.length === 0) {
       box.innerHTML = '<div class="chat-empty">Сообщений пока нет. Напиши первым!</div>';
       return;
     }
     const users = loadUsers();
-    box.innerHTML = list.map(m => {
-      const u = users.find(x => x.username === m.nick);
+    let html = '';
+    let lastDay = '';
+    chatMessages.forEach(function (m) {
+      const dk = dayKey(m.ts);
+      if (dk !== lastDay) {
+        lastDay = dk;
+        html += '<div class="chat-day"><span>' + escHtml(formatDay(m.ts)) + '</span></div>';
+      }
+      const u = users.find(function (x) { return x.username === m.nick; });
       const cls = nickClass(m.nick, u ? u.email : '');
-      const time = new Date(m.ts).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-      return '<div class="chat-msg">' +
-        '<div class="chat-avatar">' + escHtml(m.nick.charAt(0).toUpperCase()) + '</div>' +
+      const av = m.a
+        ? '<img src="' + m.a + '" alt="" class="chat-avatar-img">'
+        : '<span class="chat-avatar-letter">' + escHtml(m.nick.charAt(0).toUpperCase()) + '</span>';
+      html += '<div class="chat-msg">' +
+        '<div class="chat-avatar">' + av + '</div>' +
         '<div class="chat-body">' +
           '<div class="chat-head">' +
             '<span class="' + cls + '">' + escHtml(m.nick) + '</span>' +
-            '<span class="chat-time">' + time + '</span>' +
+            '<span class="chat-time">' + escHtml(formatMsgTime(m.ts)) + '</span>' +
           '</div>' +
           '<div class="chat-text">' + escHtml(m.text) + '</div>' +
         '</div>' +
       '</div>';
-    }).join('');
+    });
+    box.innerHTML = html;
     box.scrollTop = box.scrollHeight;
   }
+
+  // ---------- Онлайн ----------
+  const onlineMap = {};
 
   function renderOnline() {
     const list = document.getElementById('online-list');
     const cnt = document.getElementById('online-count');
     if (!list) return;
-    const users = loadUsers();
     const now = Date.now();
-    const online = users.filter(u => u.lastSeen && now - u.lastSeen < 5 * 60 * 1000);
-    if (cnt) cnt.textContent = online.length;
-    if (online.length === 0) {
+    const alive = Object.keys(onlineMap).filter(function (k) { return now - onlineMap[k].ts < 80000; });
+    if (cnt) cnt.textContent = alive.length;
+    if (alive.length === 0) {
       list.innerHTML = '<li class="online-empty">Никого нет онлайн</li>';
       return;
     }
-    const sorted = online.slice().sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0));
-    list.innerHTML = sorted.map(u => {
-      const cls = nickClass(u.username, u.email);
-      return '<li><span class="online-dot"></span><span class="' + cls + '">' + escHtml(u.username) + '</span></li>';
+    const users = loadUsers();
+    list.innerHTML = alive.map(function (k) {
+      const o = onlineMap[k];
+      const u = users.find(function (x) { return x.username === k; });
+      const cls = nickClass(k, u ? u.email : '');
+      const av = o.a
+        ? '<img src="' + o.a + '" alt="" class="online-avatar-img">'
+        : '<span class="online-avatar-letter">' + escHtml(k.charAt(0).toUpperCase()) + '</span>';
+      return '<li><span class="online-dot"></span>' + av + '<span class="' + cls + '">' + escHtml(k) + '</span></li>';
     }).join('');
   }
 
-  function touchOnline() {
-    const auth = AuthState.user;
-    if (!auth) return;
-    const users = loadUsers();
-    const u = users.find(x => x.username === auth.username);
-    if (u) { u.lastSeen = Date.now(); saveUsers(users); }
+  // ---------- Публикация / подписка (ntfy.sh) ----------
+  function publish(topic, payload) {
+    try {
+      fetch(NTFY_BASE + '/' + topic, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        body: JSON.stringify(payload)
+      }).catch(function () {});
+    } catch (e) {}
   }
 
+  function subscribe(topic, handler) {
+    try {
+      const es = new EventSource(NTFY_BASE + '/' + topic + '/json?since=10m');
+      es.onmessage = function (ev) {
+        try {
+          const data = JSON.parse(ev.data);
+          if (data.event !== 'message' || !data.message) return;
+          handler(JSON.parse(data.message));
+        } catch (e) {}
+      };
+      es.onerror = function () { /* reconnect automatic */ };
+      return es;
+    } catch (e) { return null; }
+  }
+
+  function addMessage(m) {
+    if (!m || !m.n || !m.x) return;
+    if (chatMessages.some(function (x) { return x.id === m.id; })) return;
+    chatMessages.push(m);
+    if (chatMessages.length > CHAT_MAX) chatMessages = chatMessages.slice(-CHAT_MAX);
+    saveChat(chatMessages);
+    renderChat();
+  }
+
+  // ---------- Инициализация чата ----------
   const chatSend = document.getElementById('chat-send');
   if (chatSend) {
     const nickInput = document.getElementById('chat-nick');
     const textInput = document.getElementById('chat-text');
     const msg = document.getElementById('chat-msg');
 
-    if (nickInput && AuthState.user) {
-      nickInput.value = AuthState.user.username;
-      nickInput.readOnly = true;
+    // ник из профиля, иначе — сохранённый
+    if (nickInput) {
+      const savedNick = (function () { try { return localStorage.getItem(NICK_KEY) || ''; } catch (e) { return ''; } })();
+      if (AuthState.user) {
+        nickInput.value = AuthState.user.username;
+        nickInput.readOnly = true;
+        nickInput.title = 'Ник берётся из профиля';
+      } else if (savedNick) {
+        nickInput.value = savedNick;
+      }
+      nickInput.addEventListener('input', function () {
+        try { localStorage.setItem(NICK_KEY, nickInput.value); } catch (e) {}
+      });
     }
 
-    chatSend.addEventListener('click', () => {
+    // история из localStorage + подписка на новые
+    chatMessages = loadChat();
+    renderChat();
+
+    subscribe(TOPIC_CHAT, function (m) { addMessage(m); });
+    subscribe(TOPIC_ONLINE, function (m) {
+      if (m && m.n) { onlineMap[m.n] = { ts: m.ts || Date.now(), a: m.a || '' }; renderOnline(); }
+    });
+
+    // пинг в онлайн
+    function ping() {
+      const nick = (nickInput && nickInput.value.trim()) || 'Гость';
+      myAvatarSmall().then(function (a) {
+        publish(TOPIC_ONLINE, { t: 'p', n: nick, a: a, ts: Date.now() });
+        onlineMap[nick] = { ts: Date.now(), a: a };
+        renderOnline();
+      });
+    }
+    ping();
+    setInterval(ping, 25000);
+    setInterval(renderOnline, 5000);
+    window.addEventListener('beforeunload', ping);
+
+    chatSend.addEventListener('click', function () {
       const nick = (nickInput && nickInput.value.trim()) || 'Гость';
       const text = (textInput && textInput.value.trim()) || '';
       if (msg) { msg.className = 'form-msg'; }
       if (!text) { if (msg) { msg.textContent = 'Введите сообщение'; msg.classList.add('err'); } return; }
       if (!/^[A-Za-z0-9_]{2,16}$/.test(nick)) { if (msg) { msg.textContent = 'Ник: 2–16 символов (латиница, цифры, _)'; msg.classList.add('err'); } return; }
 
-      const list = loadChat();
-      list.push({ nick: nick, text: text, ts: Date.now() });
-      saveChat(list);
-      if (textInput) textInput.value = '';
-      renderChat();
-      touchOnline();
+      myAvatarSmall().then(function (a) {
+        const payload = { id: Date.now() + '-' + Math.random().toString(36).slice(2, 7), n: nick, x: text, a: a, ts: Date.now() };
+        publish(TOPIC_CHAT, payload);
+        addMessage(payload);
+        if (textInput) textInput.value = '';
+      });
     });
 
     if (textInput) {
-      textInput.addEventListener('keydown', (e) => {
+      textInput.addEventListener('keydown', function (e) {
         if (e.key === 'Enter') { e.preventDefault(); chatSend.click(); }
       });
     }
-  }
-
-  if (document.getElementById('chat-messages')) {
-    renderChat();
-    renderOnline();
-    touchOnline();
-    setInterval(renderOnline, 5000);
-    setInterval(renderChat, 3000);
-    window.addEventListener('beforeunload', touchOnline);
   }
 
   /* ================= TOAST ================= */

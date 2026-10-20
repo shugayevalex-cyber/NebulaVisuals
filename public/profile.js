@@ -124,9 +124,31 @@
         const reader = new FileReader();
         reader.onload = () => {
           user.avatar = reader.result;
-          updateUser(user);
-          if (avatarImg) avatarImg.src = reader.result;
-          toast('Аватар обновлён');
+          // маленькая копия для чата (48x48 JPEG)
+          const img = new Image();
+          img.onload = () => {
+            try {
+              const c = document.createElement('canvas');
+              c.width = 48; c.height = 48;
+              const ctx = c.getContext('2d');
+              const s = Math.min(img.width, img.height);
+              const sx = (img.width - s) / 2, sy = (img.height - s) / 2;
+              ctx.drawImage(img, sx, sy, s, s, 0, 0, 48, 48);
+              const small = c.toDataURL('image/jpeg', 0.6);
+              user.avatarSmall = small.length < 3000 ? small : '';
+            } catch (e) { user.avatarSmall = ''; }
+            updateUser(user);
+            saveAuth(user);
+            if (avatarImg) avatarImg.src = reader.result;
+            toast('Аватар обновлён');
+          };
+          img.onerror = () => {
+            updateUser(user);
+            saveAuth(user);
+            if (avatarImg) avatarImg.src = reader.result;
+            toast('Аватар обновлён');
+          };
+          img.src = reader.result;
         };
         reader.readAsDataURL(file);
       });
