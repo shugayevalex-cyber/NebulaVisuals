@@ -40,7 +40,13 @@
   }
   function saveUsers(u) {
     try { localStorage.setItem(USERS_KEY, JSON.stringify(u)); return true; }
-    catch (e) { console.warn('saveUsers quota error', e); return false; }
+    catch (e) {
+      console.warn('saveUsers quota error', e);
+      // освобождаем историю чата и пробуем снова
+      try { localStorage.removeItem(CHAT_KEY); } catch (e2) {}
+      try { localStorage.setItem(USERS_KEY, JSON.stringify(u)); return true; }
+      catch (e3) { return false; }
+    }
   }
   function roleOf(user) {
     if (ADMIN_USERNAMES.indexOf(user.username) !== -1) return 'admin';
@@ -62,7 +68,12 @@
 
     save() {
       try { localStorage.setItem(AUTH_KEY, JSON.stringify(this.user)); return true; }
-      catch (e) { console.warn('saveAuth quota error', e); return false; }
+      catch (e) {
+        console.warn('saveAuth quota error', e);
+        try { localStorage.removeItem(CHAT_KEY); } catch (e2) {}
+        try { localStorage.setItem(AUTH_KEY, JSON.stringify(this.user)); return true; }
+        catch (e3) { return false; }
+      }
     },
 
     login(user, remember) {
@@ -181,7 +192,12 @@
         setTimeout(() => {
           const user = { username, email, password, ram: 4096, avatar: '', joined: new Date().toISOString() };
           users.push(user);
-          saveUsers(users);
+          if (!saveUsers(users)) {
+            users.pop();
+            if (err) { err.textContent = 'Не хватит места в браузере — очистите историю чата'; err.classList.add('err'); }
+            btn.disabled = false; btn.textContent = 'Зарегистрироваться';
+            return;
+          }
           this.register(user);
           if (ok) ok.textContent = 'Регистрация успешна!';
           btn.disabled = false; btn.textContent = 'Зарегистрироваться';
@@ -345,7 +361,7 @@
   const TOPIC_CHAT = 'nebula-visuals-chat-v1';
   const TOPIC_ONLINE = 'nebula-visuals-online-v1';
   const CHAT_KEY = 'nebula_chat';
-  const CHAT_MAX = 150;
+  const CHAT_MAX = 80;
   const NICK_KEY = 'nebula_chat_nick';
 
   const MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
@@ -503,8 +519,21 @@
     }
     const users = loadUsers();
     const me = (AuthState.user && AuthState.user.username) || '';
-    // свой ник — первым, остальные по свежести
+
+    // ранг роли: админ > кодер > тестировщик > пользователь
+    function rank(nick) {
+      const u = users.find(function (x) { return x.username === nick; });
+      const r = rolesOf({ username: nick, email: u ? u.email : '' });
+      if (r.indexOf('admin') !== -1) return 4;
+      if (r.indexOf('coder') !== -1) return 3;
+      if (r.indexOf('tester') !== -1) return 2;
+      return 1;
+    }
+
+    // сначала главные (админы), потом свой ник, потом остальные по свежести
     alive.sort(function (a, b) {
+      const ra = rank(a), rb = rank(b);
+      if (ra !== rb) return rb - ra;
       if (a === me) return -1;
       if (b === me) return 1;
       return (onlineMap[b].ts || 0) - (onlineMap[a].ts || 0);
@@ -531,19 +560,34 @@
     } catch (e) {}
   }
 
-  function subscribe(topic, handler) {
-    try {
-      const es = new EventSource(NTFY_BASE + '/' + topic + '/json?since=10m');
-      es.onmessage = function (ev) {
-        try {
-          const data = JSON.parse(ev.data);
-          if (data.event !== 'message' || !data.message) return;
-          handler(JSON.parse(data.message));
-        } catch (e) {}
-      };
-      es.onerror = function () { /* reconnect automatic */ };
-      return es;
-    } catch (e) { return null; }
+  function subscribe(topic, handler, onStatus) {
+    let es = null;
+    let closed = false;
+    function connect() {
+      if (closed) return;
+      try {
+        es = new EventSource(NTFY_BASE + '/' + topic + '/json?since=10m');
+        es.onopen = function () { if (onStatus) onStatus('online'); };
+        es.onmessage = function (ev) {
+          if (onStatus) onStatus('online');
+          try {
+            const data = JSON.parse(ev.data);
+            if (data.event !== 'message' || !data.message) return;
+            handler(JSON.parse(data.message));
+          } catch (e) {}
+        };
+        es.onerror = function () {
+          if (onStatus) onStatus('offline');
+          try { es.close(); } catch (e) {}
+          setTimeout(connect, 5000);
+        };
+      } catch (e) {
+        if (onStatus) onStatus('offline');
+        setTimeout(connect, 5000);
+      }
+    }
+    connect();
+    return { close: function () { closed = true; try { es.close(); } catch (e) {} } };
   }
 
   function addMessage(m) {
@@ -595,17 +639,32 @@
     chatMessages = loadChat();
     renderChat();
 
-    subscribe(TOPIC_CHAT, function (m) { addMessage(m); });
-    subscribe(TOPIC_ONLINE, function (m) {
-      if (m && m.n) { onlineMap[m.n] = { ts: m.ts || Date.now(), a: m.a || '' }; renderOnline(); }
-    });
+    // одна подписка на всё: сообщения + присутствие
+    const statusEl = document.getElementById('chat-status');
+    const statusText = document.getElementById('chat-status-text');
+    function setStatus(state) {
+      if (!statusEl) return;
+      statusEl.classList.remove('is-online', 'is-offline');
+      statusEl.classList.add(state === 'online' ? 'is-online' : 'is-offline');
+      if (statusText) statusText.textContent = state === 'online' ? 'подключено' : 'нет связи — переподключение...';
+    }
+
+    subscribe(TOPIC_CHAT, function (m) {
+      if (!m || !m.n) return;
+      if (m.t === 'p') {
+        onlineMap[m.n] = { ts: m.ts || Date.now(), a: m.a || '' };
+        renderOnline();
+        return;
+      }
+      addMessage(m);
+    }, setStatus);
 
     // пинг в онлайн
     function ping() {
       const nick = myNick();
       if (!nick) return;
       myAvatarSmall().then(function (a) {
-        publish(TOPIC_ONLINE, { t: 'p', n: nick, a: a, ts: Date.now() });
+        publish(TOPIC_CHAT, { t: 'p', n: nick, a: a, ts: Date.now() });
         onlineMap[nick] = { ts: Date.now(), a: a };
         renderOnline();
       });

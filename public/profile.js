@@ -128,20 +128,29 @@
           const full = reader.result;
           const img = new Image();
           img.onload = () => {
-            // маленькая копия 40x40 JPEG — для чата и списка онлайн
+            // 128x128 JPEG — для профиля и хедера (компактно, чтобы не переполнить localStorage)
+            let medium = '';
             let small = '';
             try {
-              const c = document.createElement('canvas');
-              c.width = 40; c.height = 40;
-              const ctx = c.getContext('2d');
               const s = Math.min(img.width, img.height);
               const sx = (img.width - s) / 2, sy = (img.height - s) / 2;
-              ctx.drawImage(img, sx, sy, s, s, 0, 0, 40, 40);
-              small = c.toDataURL('image/jpeg', 0.5);
-              if (small.length > 2600) small = '';
-            } catch (e) { small = ''; }
 
-            user.avatar = full;
+              const c1 = document.createElement('canvas');
+              c1.width = 128; c1.height = 128;
+              const x1 = c1.getContext('2d');
+              x1.drawImage(img, sx, sy, s, s, 0, 0, 128, 128);
+              medium = c1.toDataURL('image/jpeg', 0.72);
+              if (medium.length > 12000) medium = '';
+
+              const c2 = document.createElement('canvas');
+              c2.width = 40; c2.height = 40;
+              const x2 = c2.getContext('2d');
+              x2.drawImage(img, sx, sy, s, s, 0, 0, 40, 40);
+              small = c2.toDataURL('image/jpeg', 0.5);
+              if (small.length > 2600) small = '';
+            } catch (e) { medium = ''; small = ''; }
+
+            user.avatar = medium || small;
             user.avatarSmall = small;
             if (!updateUser(user)) {
               // not enough space - keep only the small copy
@@ -158,11 +167,12 @@
             toast('Аватар обновлён');
           };
           img.onerror = () => {
-            user.avatar = full;
-            if (!updateUser(user)) { toast('Не удалось сохранить — не хватит места'); return; }
+            user.avatar = '';
+            user.avatarSmall = '';
+            if (!updateUser(user)) { toast('Не хватит места для аватара'); return; }
             saveAuth(user);
-            if (avatarImg) avatarImg.src = full;
-            toast('Аватар обновлён');
+            if (avatarImg) avatarImg.src = '/logo-icon.png';
+            toast('Не удалось прочитать картинку');
           };
           img.src = full;
         };
