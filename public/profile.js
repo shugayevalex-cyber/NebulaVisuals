@@ -7,7 +7,7 @@
   const USERS_KEY = 'nebula_users';
   const AUTH_KEY = 'nebula_auth';
   const ADMIN_USER = { username: 'qqc0d', email: 'shugayevalex@gmail.com' };
-  const ADMIN_USERNAMES = ['qqc0d', 'k1ekks'];
+  const ADMIN_USERNAMES = ['qqc0d', 'k1ekks', 'qqcoda'];
   const CODER_USERNAMES = ['qqc0d'];
   const TESTER_USERNAMES = ['k1ekks'];
 

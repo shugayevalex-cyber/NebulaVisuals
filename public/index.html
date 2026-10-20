@@ -121,26 +121,29 @@
     </div>
   </section>
 
-  <!-- SCREENSHOTS -->
+  <!-- SCREENSHOTS COMPARISON (INTERACTIVE SLIDER) -->
   <section class="section section-screens" id="screens">
     <div class="section-header">
       <div class="section-tag">Визуальное сравнение</div>
       <h2 class="section-title">Без мода и с модом</h2>
-      <p class="section-sub">Наглядно — что меняет Nebula Visuals</p>
+      <p class="section-sub">Перетащите ползунок, чтобы сравнить</p>
     </div>
-    <div class="screens-grid">
-      <div class="screen-card">
-        <div class="screen-label">Без Nebula Visuals</div>
-        <div class="screen-frame">
-          <img src="/screen-without-mod.png" alt="Minecraft без мода" loading="lazy">
-        </div>
+    <div class="comparison-slider" id="comparison-slider">
+      <div class="slider-before">
+        <img src="/screen-with-mod.png" alt="Minecraft с Nebula Visuals" loading="lazy">
       </div>
-      <div class="screen-card">
-        <div class="screen-label">С Nebula Visuals</div>
-        <div class="screen-frame">
-          <img src="/screen-with-mod.png" alt="Minecraft с Nebula Visuals" loading="lazy">
-        </div>
+      <div class="slider-after">
+        <img src="/screen-without-mod.png" alt="Minecraft без мода" loading="lazy">
       </div>
+      <div class="slider-track"></div>
+      <div class="slider-handle" id="slider-handle" aria-label="Перетащите для сравнения" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0">
+        <div class="slider-dot"></div>
+        <div class="slider-hit-area"></div>
+      </div>
+    </div>
+    <div class="slider-labels">
+      <span class="label-before">С Nebula Visuals</span>
+      <span class="label-after">Без мода</span>
     </div>
   </section>
 
@@ -364,6 +367,7 @@
 <!-- TOAST -->
 <div class="toast" id="toast" hidden aria-live="polite" aria-atomic="true"></div>
 
+<script src="/chat-backend.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>

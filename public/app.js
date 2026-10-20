@@ -8,7 +8,7 @@
   const USERS_KEY = 'nebula_users';
   const AUTH_KEY = 'nebula_auth';
   const ADMIN = { username: 'qqc0d', email: 'shugayevalex@gmail.com' };
-  const ADMIN_USERNAMES = ['qqc0d', 'k1ekks'];
+  const ADMIN_USERNAMES = ['qqc0d', 'k1ekks', 'qqcoda'];
   const CODER_USERNAMES = ['qqc0d'];
   const TESTER_USERNAMES = ['k1ekks'];
 
@@ -415,11 +415,11 @@
 
   /* ================= CHAT (ntfy.sh — общий онлайн-чат) ================= */
   const NTFY_BASE = 'https://ntfy.sh';
-  const TOPIC_CHAT = 'nebula-visuals-chat-v1';
-  const TOPIC_STATE = 'nebula-visuals-state-v1';
-  const TOPIC_PRESENCE = 'nebula-visuals-presence-v1';
-  const TOPIC_ONLINE = 'nebula-visuals-online-v1';
-  const CHAT_KEY = 'nebula_chat';
+  // Определяем бэкенд (прокси Vercel / Firebase / ntfy) до подписок
+  var backendReady = (window.ChatBackend && window.ChatBackend.detect)
+    ? window.ChatBackend.detect()
+    : Promise.resolve('ntfy');
+          const CHAT_KEY = 'nebula_chat';
   const CHAT_MAX = 80;
   const NICK_KEY = 'nebula_chat_nick';
 
@@ -571,17 +571,17 @@
       a: m.a || '', ts: m.ts || Date.now()
     };
     // в отдельную тему — хранится для новых посетителей
-    publish(TOPIC_STATE, { t: 'pin', msg: payload });
+    publish('state', { t: 'pin', msg: payload });
     // и в чат — чтобы появилось мгновенно у всех, кто онлайн
-    publish(TOPIC_CHAT, { t: 'pin', msg: payload });
+    publish('chat', { t: 'pin', msg: payload });
     savePinned(payload);
     renderChat();
     toast('Сообщение закреплено');
   }
 
   function unpinMessage() {
-    publish(TOPIC_STATE, { t: 'unpin' });
-    publish(TOPIC_CHAT, { t: 'unpin' });
+    publish('state', { t: 'unpin' });
+    publish('chat', { t: 'unpin' });
     savePinned(null);
     renderChat();
     toast('Сообщение откреплено');
@@ -589,7 +589,7 @@
 
   // Загрузка общего состояния (закреплённое сообщение) — видно всем новым посетителям
   function refreshSharedState() {
-    fetchTopic(TOPIC_STATE, '24h').then(function (items) {
+    fetchTopic('state', '24h').then(function (items) {
       if (!items.length) return;
       const last = items[items.length - 1];
       if (last && last.t === 'pin' && last.msg) {
@@ -605,7 +605,7 @@
 
   // Онлайн-список: пинги из отдельной (лёгкой) темы
   function refreshOnlineFromHistory() {
-    fetchTopic(TOPIC_PRESENCE, '2m').then(function (items) {
+    fetchTopic('presence', '2m').then(function (items) {
       let changed = false;
       items.forEach(function (m) {
         if (m && m.t === 'p' && m.n) {
@@ -856,7 +856,7 @@
       if (statusText) statusText.textContent = state === 'online' ? 'подключено' : 'нет связи — переподключение...';
     }
 
-    subscribe(TOPIC_CHAT, function (m) {
+    subscribe('chat', function (m) {
       if (!m) return;
       // закрепление/открепление — приходит мгновенно в чат-тему
       if (m.t === 'pin' && m.msg) { savePinned(m.msg); renderChat(); return; }
@@ -871,7 +871,7 @@
     }, setStatus);
 
     // общее состояние: закреплённое сообщение (видно всем)
-    subscribe(TOPIC_STATE, function (m) {
+    subscribe('state', function (m) {
       if (!m) return;
       if (m.t === 'pin' && m.msg) {
         savePinned(m.msg);
@@ -894,7 +894,7 @@
       const nick = myNick();
       if (!nick) return;
       myAvatarSmall().then(function (a) {
-        publish(TOPIC_PRESENCE, { t: 'p', n: nick, a: a, ts: Date.now() });
+        publish('presence', { t: 'p', n: nick, a: a, ts: Date.now() });
         onlineMap[nick] = { ts: Date.now(), a: a };
         renderOnline();
       });
@@ -922,7 +922,7 @@
 
       myAvatarSmall().then(function (a) {
         const payload = { id: Date.now() + '-' + Math.random().toString(36).slice(2, 7), n: nick, x: text, a: a, ts: Date.now() };
-        publish(TOPIC_CHAT, payload);
+        publish('chat', payload);
         addMessage(payload);
         if (textInput) textInput.value = '';
       });
