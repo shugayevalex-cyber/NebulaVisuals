@@ -520,24 +520,28 @@
     let html = '';
     let lastDay = '';
     chatMessages.forEach(function (m) {
-      const dk = dayKey(m.ts);
+      // поддержка обоих форматов: новый (n/x) и старый (nick/text)
+      const nick = m.n || m.nick || 'Гость';
+      const text = m.x != null ? m.x : (m.text || '');
+      const ts = m.ts || Date.now();
+      const dk = dayKey(ts);
       if (dk !== lastDay) {
         lastDay = dk;
-        html += '<div class="chat-day"><span>' + escHtml(formatDay(m.ts)) + '</span></div>';
+        html += '<div class="chat-day"><span>' + escHtml(formatDay(ts)) + '</span></div>';
       }
-      const u = users.find(function (x) { return x.username === m.nick; });
-      const cls = nickClass(m.nick, u ? u.email : '');
+      const u = users.find(function (x) { return x.username === nick; });
+      const cls = nickClass(nick, u ? u.email : '');
       const av = m.a
         ? '<img src="' + m.a + '" alt="" class="chat-avatar-img">'
-        : '<span class="chat-avatar-letter">' + escHtml(m.nick.charAt(0).toUpperCase()) + '</span>';
+        : '<span class="chat-avatar-letter">' + escHtml(nick.charAt(0).toUpperCase()) + '</span>';
       html += '<div class="chat-msg">' +
         '<div class="chat-avatar">' + av + '</div>' +
         '<div class="chat-body">' +
           '<div class="chat-head">' +
-            '<span class="' + cls + '">' + escHtml(m.nick) + '</span>' +
-            '<span class="chat-time">' + escHtml(formatMsgTime(m.ts)) + '</span>' +
+            '<span class="' + cls + '">' + escHtml(nick) + '</span>' +
+            '<span class="chat-time">' + escHtml(formatMsgTime(ts)) + '</span>' +
           '</div>' +
-          '<div class="chat-text">' + escHtml(m.text) + '</div>' +
+          '<div class="chat-text">' + escHtml(text) + '</div>' +
         '</div>' +
       '</div>';
     });
@@ -646,6 +650,7 @@
   // ---------- Инициализация чата ----------
   const chatSend = document.getElementById('chat-send');
   if (chatSend) {
+   try {
     const textInput = document.getElementById('chat-text');
     const msg = document.getElementById('chat-msg');
     const meEl = document.getElementById('chat-me');
@@ -748,6 +753,9 @@
         if (e.key === 'Enter') { e.preventDefault(); if (!textInput.disabled) chatSend.click(); }
       });
     }
+   } catch (chatErr) {
+     console.error('chat init error', chatErr);
+   }
   }
 
   /* ================= TOAST ================= */
@@ -763,5 +771,6 @@
   const yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-  AuthState.init();
+  try { AuthState.init(); }
+  catch (initErr) { console.error('init error', initErr); }
 })();
