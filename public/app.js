@@ -417,6 +417,7 @@
   const NTFY_BASE = 'https://ntfy.sh';
   const TOPIC_CHAT = 'nebula-visuals-chat-v1';
   const TOPIC_STATE = 'nebula-visuals-state-v1';
+  const TOPIC_PRESENCE = 'nebula-visuals-presence-v1';
   const TOPIC_ONLINE = 'nebula-visuals-online-v1';
   const CHAT_KEY = 'nebula_chat';
   const CHAT_MAX = 80;
@@ -569,7 +570,10 @@
       id: m.id, n: m.n || m.nick, x: m.x != null ? m.x : m.text,
       a: m.a || '', ts: m.ts || Date.now()
     };
+    // в отдельную тему — хранится для новых посетителей
     publish(TOPIC_STATE, { t: 'pin', msg: payload });
+    // и в чат — чтобы появилось мгновенно у всех, кто онлайн
+    publish(TOPIC_CHAT, { t: 'pin', msg: payload });
     savePinned(payload);
     renderChat();
     toast('Сообщение закреплено');
@@ -577,6 +581,7 @@
 
   function unpinMessage() {
     publish(TOPIC_STATE, { t: 'unpin' });
+    publish(TOPIC_CHAT, { t: 'unpin' });
     savePinned(null);
     renderChat();
     toast('Сообщение откреплено');
@@ -598,9 +603,9 @@
     });
   }
 
-  // Онлайн-список: добираем пинги из истории темы (для новых посетителей)
+  // Онлайн-список: пинги из отдельной (лёгкой) темы
   function refreshOnlineFromHistory() {
-    fetchTopic(TOPIC_CHAT, '2m').then(function (items) {
+    fetchTopic(TOPIC_PRESENCE, '2m').then(function (items) {
       let changed = false;
       items.forEach(function (m) {
         if (m && m.t === 'p' && m.n) {
@@ -853,6 +858,9 @@
 
     subscribe(TOPIC_CHAT, function (m) {
       if (!m) return;
+      // закрепление/открепление — приходит мгновенно в чат-тему
+      if (m.t === 'pin' && m.msg) { savePinned(m.msg); renderChat(); return; }
+      if (m.t === 'unpin') { savePinned(null); renderChat(); return; }
       if (!m.n) return;
       if (m.t === 'p') {
         onlineMap[m.n] = { ts: m.ts || Date.now(), a: m.a || '' };
@@ -878,15 +886,15 @@
 
     refreshSharedState();
     refreshOnlineFromHistory();
-    setInterval(refreshSharedState, 10000);
-    setInterval(refreshOnlineFromHistory, 5000);
+    setInterval(refreshSharedState, 30000);
+    setInterval(refreshOnlineFromHistory, 8000);
 
-    // пинг в онлайн
+    // пинг в онлайн (отдельная лёгкая тема)
     function ping() {
       const nick = myNick();
       if (!nick) return;
       myAvatarSmall().then(function (a) {
-        publish(TOPIC_CHAT, { t: 'p', n: nick, a: a, ts: Date.now() });
+        publish(TOPIC_PRESENCE, { t: 'p', n: nick, a: a, ts: Date.now() });
         onlineMap[nick] = { ts: Date.now(), a: a };
         renderOnline();
       });
