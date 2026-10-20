@@ -93,7 +93,7 @@ body {
 .btn-icon-img { width: 18px; height: 18px; object-fit: contain; }
 
 .badge-admin { color: var(--accent-green); font-weight: 700; }
-.badge-coder { color: var(--accent-blue); font-weight: 700; }
+.badge-coder { color: var(--accent-purple); font-weight: 700; }
 
 .sidebar-nav { display: flex; flex-direction: column; gap: 6px; }
 .nav-item {

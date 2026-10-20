@@ -7,6 +7,7 @@
   const USERS_KEY = 'nebula_users';
   const AUTH_KEY = 'nebula_auth';
   const ADMIN_USER = { username: 'qqc0d', email: 'shugayevalex@gmail.com' };
+  const ADMIN_USERNAMES = ['qqc0d', 'k1ekks'];
 
   /* EmailJS config — заполни своими данными (https://www.emailjs.com) */
   const EMAILJS = {
@@ -32,8 +33,9 @@
   function clearAuth() { try { localStorage.removeItem(AUTH_KEY); } catch (e) {} }
 
   function roleOf(user) {
-    return (user.username === ADMIN_USER.username && user.email.toLowerCase() === ADMIN_USER.email)
-      ? 'admin' : 'user';
+    if (ADMIN_USERNAMES.indexOf(user.username) !== -1) return 'admin';
+    if (user.username === ADMIN_USER.username && user.email.toLowerCase() === ADMIN_USER.email) return 'admin';
+    return 'user';
   }
 
   /* ---------- toast ---------- */
@@ -181,11 +183,9 @@
     const el = document.getElementById('user-status');
     if (!el) return;
     if (role === 'admin') {
-      el.textContent = 'admin • кодер';
-      el.style.color = 'var(--accent-green)';
+      el.innerHTML = '<span class="badge-admin">admin</span> <span class="badge-coder">кодер</span>';
     } else {
       el.textContent = 'Пользователь';
-      el.style.color = 'var(--accent-blue)';
     }
   }
   function setText(id, val) {

@@ -8,13 +8,16 @@
   const USERS_KEY = 'nebula_users';
   const AUTH_KEY = 'nebula_auth';
   const ADMIN = { username: 'qqc0d', email: 'shugayevalex@gmail.com' };
+  const ADMIN_USERNAMES = ['qqc0d', 'k1ekks'];
 
   function loadUsers() {
     try { return JSON.parse(localStorage.getItem(USERS_KEY)) || []; } catch (e) { return []; }
   }
   function saveUsers(u) { try { localStorage.setItem(USERS_KEY, JSON.stringify(u)); } catch (e) {} }
   function roleOf(user) {
-    return (user.username === ADMIN.username && user.email.toLowerCase() === ADMIN.email) ? 'admin' : 'user';
+    if (ADMIN_USERNAMES.indexOf(user.username) !== -1) return 'admin';
+    if (user.username === ADMIN.username && user.email.toLowerCase() === ADMIN.email) return 'admin';
+    return 'user';
   }
 
   const AuthState = {
