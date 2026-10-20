@@ -124,73 +124,17 @@
       });
     }
 
-    // download button
+    // download button — прямая ссылка, минует страницу превью и скан Google (быстрее)
     const dl = document.getElementById('download-btn');
     if (dl) dl.addEventListener('click', () => {
-      window.open('https://drive.google.com/uc?export=download&id=1vV0IfVQDqHPpjdM_6LInXzrdtpCXWat_', '_blank');
-    });
-
-    // change email — send code then verify
-    let pendingCode = null;
-
-    const sendCode = document.getElementById('send-code');
-    if (sendCode) sendCode.addEventListener('click', async () => {
-      const email = document.getElementById('new-email').value.trim().toLowerCase();
-      const msg = document.getElementById('email-msg');
-      msg.className = 'form-msg';
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.textContent = 'Некорректный email'; msg.classList.add('err'); return; }
-      if (loadUsers().some(u => u.email.toLowerCase() === email && u.username !== user.username)) {
-        msg.textContent = 'Такая почта уже используется'; msg.classList.add('err'); return;
-      }
-      sendCode.disabled = true; sendCode.textContent = 'Отправка...';
-      try {
-        const res = await fetch('/api/send-code', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ to_email: email })
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || !data.ok) {
-          msg.textContent = (data && data.error) || 'Не удалось отправить письмо';
-          msg.classList.add('err');
-          sendCode.disabled = false; sendCode.textContent = 'Отправить код';
-          return;
-        }
-        pendingCode = String(data.code);
-        msg.textContent = 'Код отправлен на ' + email + '. Введите его в поле ниже.';
-        msg.classList.add('ok');
-        const codeInput = document.getElementById('email-code');
-        if (codeInput) codeInput.focus();
-        toast('Код отправлен на почту');
-      } catch (e) {
-        msg.textContent = 'Ошибка соединения с сервером';
-        msg.classList.add('err');
-      } finally {
-        sendCode.disabled = false; sendCode.textContent = 'Отправить код';
-      }
-    });
-
-    const saveEmail = document.getElementById('save-email');
-    if (saveEmail) saveEmail.addEventListener('click', () => {
-      const email = document.getElementById('new-email').value.trim().toLowerCase();
-      const code = document.getElementById('email-code').value.trim().toUpperCase();
-      const msg = document.getElementById('email-msg');
-      msg.className = 'form-msg';
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.textContent = 'Некорректный email'; msg.classList.add('err'); return; }
-      if (!pendingCode) { msg.textContent = 'Сначала отправьте код на почту'; msg.classList.add('err'); return; }
-      if (code !== pendingCode) { msg.textContent = 'Неверный код'; msg.classList.add('err'); return; }
-      if (loadUsers().some(u => u.email.toLowerCase() === email && u.username !== user.username)) {
-        msg.textContent = 'Такая почта уже используется'; msg.classList.add('err'); return;
-      }
-      user.email = email;
-      updateUser(user);
-      saveAuth(user);
-      pendingCode = null;
-      msg.textContent = 'Почта обновлена'; msg.classList.add('ok');
-      document.getElementById('new-email').value = '';
-      document.getElementById('email-code').value = '';
-      setText('email-value', email);
-      toast('Почта сохранена');
+      const url = 'https://drive.usercontent.google.com/download?id=1vV0IfVQDqHPpjdM_6LInXzrdtpCXWat_&export=download&confirm=t';
+      const a = document.createElement('a');
+      a.href = url;
+      a.rel = 'noopener';
+      a.download = 'Nebula Visuals Setup 1.5.0.exe';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     });
 
     // change password

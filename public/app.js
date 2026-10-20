@@ -57,7 +57,9 @@
       if (u) {
         if (navAuth) navAuth.style.display = 'none';
         if (navProfile) navProfile.style.display = 'flex';
-        setText('nav-profile-avatar', u.username.charAt(0).toUpperCase());
+        // avatar: show image if set, else logo
+        const avImg = document.getElementById('nav-avatar-img');
+        if (avImg) avImg.src = u.avatar || '/logo-icon.png';
         setText('nav-profile-name', u.username);
       } else {
         if (navAuth) navAuth.style.display = 'flex';
