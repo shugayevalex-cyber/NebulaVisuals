@@ -71,37 +71,11 @@
       <button class="nav-auth" id="nav-auth-btn" aria-label="Войти или зарегистрироваться">
         <span class="nav-auth-text">Войти</span>
       </button>
-      <!-- Profile button (shown when logged in) -->
-      <div class="nav-profile" id="nav-profile" style="display: none;">
-        <button class="nav-profile-btn" id="nav-profile-btn" aria-label="Профиль">
-          <span class="nav-profile-avatar" id="nav-profile-avatar">?</span>
-          <span class="nav-profile-name" id="nav-profile-name">Профиль</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M6 9l6 6 6-6"/>
-          </svg>
-        </button>
-        <div class="nav-profile-dropdown" id="nav-profile-dropdown">
-          <div class="dropdown-header">
-            <span class="dropdown-avatar" id="dropdown-avatar">?</span>
-            <div class="dropdown-info">
-              <span class="dropdown-name" id="dropdown-name">—</span>
-              <span class="dropdown-email" id="dropdown-email">—</span>
-            </div>
-          </div>
-          <div class="dropdown-stats">
-            <div><span class="stat-label">RAM</span><span id="dropdown-ram" class="stat-value">4096 MB</span></div>
-            <div><span class="stat-label">Сервер</span><span id="dropdown-server" class="stat-value">Подключен</span></div>
-          </div>
-          <button class="dropdown-btn" id="dropdown-download">
-            <span class="btn-icon">↓</span>
-            <span class="btn-text">Скачать лаунчер</span>
-          </button>
-          <button class="dropdown-btn dropdown-btn-danger" id="dropdown-logout">
-            <span class="btn-icon">🚪</span>
-            <span class="btn-text">Выйти</span>
-          </button>
-        </div>
-      </div>
+      <!-- Profile link (shown when logged in) — opens profile.html -->
+      <a class="nav-profile-link" id="nav-profile-link" href="/profile.html" aria-label="Профиль">
+        <span class="nav-profile-avatar" id="nav-profile-avatar">?</span>
+        <span class="nav-profile-name" id="nav-profile-name">Профиль</span>
+      </a>
     </div>
   </div>
 </header>
@@ -291,9 +265,9 @@
           <input type="password" id="modal-login-password" name="password" placeholder="Введите пароль" required autocomplete="current-password">
         </div>
         <div class="form-row remember-row">
-          <label class="checkbox-label">
-            <input type="checkbox" id="modal-remember" name="remember">
-            <span class="checkbox-custom"></span>
+          <label class="switch-label">
+            <input type="checkbox" id="modal-remember" name="remember" class="switch-input">
+            <span class="switch-track"><span class="switch-knob"></span></span>
             <span>Запомнить меня</span>
           </label>
         </div>

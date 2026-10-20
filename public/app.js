@@ -5,56 +5,60 @@
   'use strict';
 
   /* ================= AUTH STATE ================= */
+  const USERS_KEY = 'nebula_users';
+  const AUTH_KEY = 'nebula_auth';
+  const ADMIN = { username: 'qqc0d', email: 'shugayevalex@gmail.com' };
+
+  function loadUsers() {
+    try { return JSON.parse(localStorage.getItem(USERS_KEY)) || []; } catch (e) { return []; }
+  }
+  function saveUsers(u) { try { localStorage.setItem(USERS_KEY, JSON.stringify(u)); } catch (e) {} }
+  function roleOf(user) {
+    return (user.username === ADMIN.username && user.email.toLowerCase() === ADMIN.email) ? 'admin' : 'user';
+  }
+
   const AuthState = {
     user: null,
 
     init() {
       try {
-        const saved = localStorage.getItem('nebula_auth');
+        const saved = localStorage.getItem(AUTH_KEY);
         if (saved) this.user = JSON.parse(saved);
-      } catch (e) {
-        localStorage.removeItem('nebula_auth');
-      }
+      } catch (e) { localStorage.removeItem(AUTH_KEY); }
       this.updateUI();
       this.bindModals();
     },
 
-    save() {
-      try { localStorage.setItem('nebula_auth', JSON.stringify(this.user)); } catch (e) {}
-    },
+    save() { try { localStorage.setItem(AUTH_KEY, JSON.stringify(this.user)); } catch (e) {} },
 
-    login(username, email, remember) {
-      this.user = { username, email, ram: 4096, joined: new Date().toISOString() };
-      if (remember !== false) this.save();
+    login(user, remember) {
+      this.user = user;
+      if (remember !== false) this.save(); else localStorage.removeItem(AUTH_KEY);
       this.updateUI();
     },
 
-    register(username, email) {
-      this.user = { username, email, ram: 4096, joined: new Date().toISOString() };
+    register(user) {
+      this.user = user;
       this.save();
       this.updateUI();
     },
 
     logout() {
       this.user = null;
-      try { localStorage.removeItem('nebula_auth'); } catch (e) {}
+      try { localStorage.removeItem(AUTH_KEY); } catch (e) {}
       this.updateUI();
     },
 
     updateUI() {
       const u = this.user;
       const navAuth = document.getElementById('nav-auth-btn');
-      const navProfile = document.getElementById('nav-profile');
+      const navProfile = document.getElementById('nav-profile-link');
 
       if (u) {
         if (navAuth) navAuth.style.display = 'none';
         if (navProfile) navProfile.style.display = 'flex';
         setText('nav-profile-avatar', u.username.charAt(0).toUpperCase());
         setText('nav-profile-name', u.username);
-        setText('dropdown-avatar', u.username.charAt(0).toUpperCase());
-        setText('dropdown-name', u.username);
-        setText('dropdown-email', u.email);
-        setText('dropdown-ram', (u.ram || 4096) + ' MB');
       } else {
         if (navAuth) navAuth.style.display = 'flex';
         if (navProfile) navProfile.style.display = 'none';
@@ -100,10 +104,10 @@
         if (!u || !p) { if (err) err.textContent = 'Введите ник/email и пароль'; return; }
         btn.disabled = true; btn.textContent = 'Вход...';
         setTimeout(() => {
-          const isEmail = u.includes('@');
-          const email = isEmail ? u.toLowerCase() : u.toLowerCase() + '@nebula.local';
-          const name = isEmail ? u.split('@')[0] : u;
-          this.login(name, email, remember);
+          const users = loadUsers();
+          const user = users.find(x => x.username.toLowerCase() === u.toLowerCase() || x.email.toLowerCase() === u.toLowerCase());
+          if (!user || user.password !== p) { if (err) err.textContent = 'Неверный логин или пароль'; btn.disabled = false; btn.textContent = 'Войти'; return; }
+          this.login(user, remember);
           if (ok) ok.textContent = 'Вход выполнен!';
           btn.disabled = false; btn.textContent = 'Войти';
           document.getElementById('modal-login-username').value = '';
@@ -130,9 +134,17 @@
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { if (err) err.textContent = 'Некорректный email'; return; }
         if (password.length < 6) { if (err) err.textContent = 'Пароль минимум 6 символов'; return; }
         if (password !== confirm) { if (err) err.textContent = 'Пароли не совпадают'; return; }
+
+        const users = loadUsers();
+        if (users.some(x => x.username.toLowerCase() === username.toLowerCase())) { if (err) err.textContent = 'Такой ник уже занят'; return; }
+        if (users.some(x => x.email.toLowerCase() === email)) { if (err) err.textContent = 'Такая почта уже зарегистрирована'; return; }
+
         btn.disabled = true; btn.textContent = 'Регистрация...';
         setTimeout(() => {
-          this.register(username, email);
+          const user = { username, email, password, ram: 4096, avatar: '', joined: new Date().toISOString() };
+          users.push(user);
+          saveUsers(users);
+          this.register(user);
           if (ok) ok.textContent = 'Регистрация успешна!';
           btn.disabled = false; btn.textContent = 'Зарегистрироваться';
           document.getElementById('modal-reg-username').value = '';
@@ -281,17 +293,14 @@
     });
   }
 
-  /* ================= PROFILE DROPDOWN ================= */
-  const profBtn = document.getElementById('nav-profile-btn');
-  const profDrop = document.getElementById('nav-profile-dropdown');
-  if (profBtn && profDrop) {
-    profBtn.addEventListener('click', (e) => { e.stopPropagation(); profDrop.classList.toggle('open'); });
-    document.addEventListener('click', (e) => { if (!profDrop.contains(e.target) && e.target !== profBtn) profDrop.classList.remove('open'); });
+  /* ================= PROFILE ================= */
+  const navProfileLink = document.getElementById('nav-profile-link');
+  if (navProfileLink) {
+    navProfileLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.href = '/profile.html';
+    });
   }
-  const dlBtn = document.getElementById('dropdown-download');
-  if (dlBtn) dlBtn.addEventListener('click', () => { window.open('https://drive.google.com/uc?export=download&id=1vV0IfVQDqHPpjdM_6LInXzrdtpCXWat_', '_blank'); if (profDrop) profDrop.classList.remove('open'); });
-  const outBtn = document.getElementById('dropdown-logout');
-  if (outBtn) outBtn.addEventListener('click', () => { AuthState.logout(); toast('Вы вышли из аккаунта'); if (profDrop) profDrop.classList.remove('open'); });
 
   /* ================= TOAST ================= */
   window.toast = function (msg) {

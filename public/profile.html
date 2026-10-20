@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Профиль — Nebula Visuals</title>
+<meta name="description" content="Личный кабинет Nebula Visuals">
+<link rel="icon" href="/icon.png" type="image/png">
+<link rel="stylesheet" href="/profile.css">
+</head>
+<body>
+
+<!-- VIDEO BACKGROUND -->
+<video id="bg-video" class="bg-video" autoplay muted loop playsinline poster="/icon.png">
+  <source src="https://github.com/shugayevalex-cyber/nebula-visuals-site/releases/latest/download/bg-video.mp4" type="video/mp4">
+</video>
+<div class="bg-overlay"></div>
+<canvas id="particles" class="particles-canvas"></canvas>
+
+<div class="shell">
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img src="/logo-icon.png" alt="NV" class="sidebar-logo">
+      <span>NebulaVisuals</span>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="avatar-wrap" id="avatar-wrap" title="Нажмите, чтобы сменить аватар">
+        <img src="/logo-icon.png" alt="Аватар" class="avatar-img" id="avatar-img">
+        <input type="file" id="avatar-input" accept="image/png,image/jpeg,image/webp" hidden>
+        <div class="avatar-edit">✎</div>
+      </div>
+      <div class="user-meta">
+        <div class="user-name" id="user-name">—</div>
+        <div class="user-status" id="user-status">Пользователь</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-tab="home">
+        <span class="nav-icon">🏠</span><span>Главная</span>
+      </button>
+      <button class="nav-item" data-tab="security">
+        <span class="nav-icon">🔒</span><span>Безопасность</span>
+      </button>
+    </nav>
+
+    <button class="logout-btn" id="logout-btn">
+      <span class="nav-icon">🚪</span><span>Выйти</span>
+    </button>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main">
+    <div class="topbar">
+      <h1 class="page-title" id="page-title">Главная</h1>
+      <a class="back-link" href="/index.html">← На сайт</a>
+    </div>
+
+    <!-- HOME TAB -->
+    <section class="tab-content active" id="tab-home">
+      <div class="panel">
+        <div class="panel-row">
+          <span class="panel-label">Идентификатор устройства (HWID)</span>
+          <span class="panel-value" id="hwid-value">—</span>
+        </div>
+        <div class="panel-row">
+          <span class="panel-label">Сбросы HWID</span>
+          <span class="panel-value" id="resets-value">0</span>
+        </div>
+        <div class="panel-row">
+          <span class="panel-label">Роль</span>
+          <span class="panel-value" id="role-value">Пользователь</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary btn-lg" id="download-btn">
+          <span class="btn-icon">↓</span>
+          <span class="btn-text">Скачать файл</span>
+        </button>
+      </div>
+
+      <div class="hint" id="profile-hint"></div>
+    </section>
+
+    <!-- SECURITY TAB -->
+    <section class="tab-content" id="tab-security">
+      <div class="panel">
+        <h3 class="panel-title">Сменить почту</h3>
+        <div class="form-group">
+          <label for="new-email">Новая почта</label>
+          <input type="email" id="new-email" placeholder="mail@example.com" autocomplete="email">
+        </div>
+        <button class="btn btn-primary" id="save-email">Сохранить почту</button>
+        <div class="form-msg" id="email-msg"></div>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title">Сменить пароль</h3>
+        <div class="form-group">
+          <label for="cur-pass">Текущий пароль</label>
+          <input type="password" id="cur-pass" placeholder="Текущий пароль" autocomplete="current-password">
+        </div>
+        <div class="form-group">
+          <label for="new-pass">Новый пароль</label>
+          <input type="password" id="new-pass" placeholder="Минимум 6 символов" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label for="conf-pass">Подтвердите пароль</label>
+          <input type="password" id="conf-pass" placeholder="Повторите пароль" autocomplete="new-password">
+        </div>
+        <button class="btn btn-primary" id="save-pass">Сохранить пароль</button>
+        <div class="form-msg" id="pass-msg"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="/profile.js"></script>
+</body>
+</html>
