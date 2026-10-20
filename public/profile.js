@@ -134,7 +134,7 @@
     let pendingCode = null;
 
     const sendCode = document.getElementById('send-code');
-    if (sendCode) sendCode.addEventListener('click', () => {
+    if (sendCode) sendCode.addEventListener('click', async () => {
       const email = document.getElementById('new-email').value.trim().toLowerCase();
       const msg = document.getElementById('email-msg');
       msg.className = 'form-msg';
@@ -142,15 +142,32 @@
       if (loadUsers().some(u => u.email.toLowerCase() === email && u.username !== user.username)) {
         msg.textContent = 'Такая почта уже используется'; msg.classList.add('err'); return;
       }
-      // generate 10-digit random code (numbers only)
-      const code = String(Math.floor(1000000000 + Math.random() * 9000000000));
-      pendingCode = code;
-      // NOTE: реальная отправка на почту требует бэкенда; здесь код показывается в демо-режиме
-      msg.textContent = 'Код отправлен на ' + email + '. (Демо: ' + code + ')';
-      msg.classList.add('ok');
-      const codeInput = document.getElementById('email-code');
-      if (codeInput) codeInput.focus();
-      toast('Код отправлен на почту');
+      sendCode.disabled = true; sendCode.textContent = 'Отправка...';
+      try {
+        const res = await fetch('/api/send-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ to_email: email })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+          msg.textContent = (data && data.error) || 'Не удалось отправить письмо';
+          msg.classList.add('err');
+          sendCode.disabled = false; sendCode.textContent = 'Отправить код';
+          return;
+        }
+        pendingCode = String(data.code);
+        msg.textContent = 'Код отправлен на ' + email + '. Введите его в поле ниже.';
+        msg.classList.add('ok');
+        const codeInput = document.getElementById('email-code');
+        if (codeInput) codeInput.focus();
+        toast('Код отправлен на почту');
+      } catch (e) {
+        msg.textContent = 'Ошибка соединения с сервером';
+        msg.classList.add('err');
+      } finally {
+        sendCode.disabled = false; sendCode.textContent = 'Отправить код';
+      }
     });
 
     const saveEmail = document.getElementById('save-email');
