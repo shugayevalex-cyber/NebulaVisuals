@@ -38,7 +38,10 @@
   function loadUsers() {
     try { return JSON.parse(localStorage.getItem(USERS_KEY)) || []; } catch (e) { return []; }
   }
-  function saveUsers(u) { try { localStorage.setItem(USERS_KEY, JSON.stringify(u)); } catch (e) {} }
+  function saveUsers(u) {
+    try { localStorage.setItem(USERS_KEY, JSON.stringify(u)); return true; }
+    catch (e) { console.warn('saveUsers quota error', e); return false; }
+  }
   function roleOf(user) {
     if (ADMIN_USERNAMES.indexOf(user.username) !== -1) return 'admin';
     if (user.username === ADMIN.username && user.email.toLowerCase() === ADMIN.email) return 'admin';
@@ -57,7 +60,10 @@
       this.bindModals();
     },
 
-    save() { try { localStorage.setItem(AUTH_KEY, JSON.stringify(this.user)); } catch (e) {} },
+    save() {
+      try { localStorage.setItem(AUTH_KEY, JSON.stringify(this.user)); return true; }
+      catch (e) { console.warn('saveAuth quota error', e); return false; }
+    },
 
     login(user, remember) {
       this.user = user;
@@ -87,7 +93,7 @@
         if (navProfile) navProfile.style.display = 'flex';
         // avatar: show image if set, else logo
         const avImg = document.getElementById('nav-avatar-img');
-        if (avImg) avImg.src = u.avatar || '/logo-icon.png';
+        if (avImg) avImg.src = myAvatarFull() || '/logo-icon.png';
         setText('nav-profile-name', u.username);
       } else {
         if (navAuth) navAuth.style.display = 'flex';
@@ -352,7 +358,13 @@
     try { return JSON.parse(localStorage.getItem(CHAT_KEY)) || []; } catch (e) { return []; }
   }
   function saveChat(list) {
-    try { localStorage.setItem(CHAT_KEY, JSON.stringify(list.slice(-CHAT_MAX))); } catch (e) {}
+    const data = list.slice(-CHAT_MAX);
+    try { localStorage.setItem(CHAT_KEY, JSON.stringify(data)); return true; }
+    catch (e) {
+      // мало места — режем историю
+      try { localStorage.setItem(CHAT_KEY, JSON.stringify(data.slice(-30))); } catch (e2) {}
+      return false;
+    }
   }
 
   function dayKey(ts) {
@@ -394,12 +406,44 @@
     });
   }
 
+  // Полный аватар (для хедера сайта)
+  function myAvatarFull() {
+    const a = AuthState.user;
+    if (!a) return '';
+    const users = loadUsers();
+    const u = users.find(function (x) { return x.username === a.username; });
+    if (u && u.avatar) return u.avatar;
+    return a.avatar || '';
+  }
+
+  // Маленький аватар 40x40 (для чата и списка онлайн)
   function myAvatarSmall() {
     const a = AuthState.user;
     if (!a) return Promise.resolve('');
     const users = loadUsers();
     const u = users.find(function (x) { return x.username === a.username; });
-    return Promise.resolve((u && (u.avatarSmall || '')) || '');
+    const full = (u && u.avatar) || a.avatar || '';
+    const cached = (u && u.avatarSmall) || a.avatarSmall || '';
+    if (cached) return Promise.resolve(cached);
+    if (!full) return Promise.resolve('');
+    // генерируем маленькую копию из полной
+    return new Promise(function (resolve) {
+      const img = new Image();
+      img.onload = function () {
+        try {
+          const c = document.createElement('canvas');
+          c.width = 40; c.height = 40;
+          const ctx = c.getContext('2d');
+          const s = Math.min(img.width, img.height);
+          const sx = (img.width - s) / 2, sy = (img.height - s) / 2;
+          ctx.drawImage(img, sx, sy, s, s, 0, 0, 40, 40);
+          const small = c.toDataURL('image/jpeg', 0.5);
+          resolve(small.length > 2600 ? '' : small);
+        } catch (e) { resolve(''); }
+      };
+      img.onerror = function () { resolve(''); };
+      img.src = full;
+    });
   }
 
   // ---------- Рендер чата ----------
@@ -518,6 +562,10 @@
         nickInput.title = 'Ник берётся из профиля';
       } else if (savedNick) {
         nickInput.value = savedNick;
+      } else {
+        // гость — уникальный ник, чтобы не путать людей в онлайне
+        nickInput.value = 'Гость_' + Math.random().toString(36).slice(2, 6);
+        try { localStorage.setItem(NICK_KEY, nickInput.value); } catch (e) {}
       }
       nickInput.addEventListener('input', function () {
         try { localStorage.setItem(NICK_KEY, nickInput.value); } catch (e) {}

@@ -24,13 +24,15 @@
     try { return JSON.parse(localStorage.getItem(USERS_KEY)) || []; } catch (e) { return []; }
   }
   function saveUsers(u) {
-    try { localStorage.setItem(USERS_KEY, JSON.stringify(u)); } catch (e) {}
+    try { localStorage.setItem(USERS_KEY, JSON.stringify(u)); return true; }
+    catch (e) { console.warn('saveUsers quota error', e); return false; }
   }
   function loadAuth() {
     try { return JSON.parse(localStorage.getItem(AUTH_KEY)); } catch (e) { return null; }
   }
   function saveAuth(a) {
-    try { localStorage.setItem(AUTH_KEY, JSON.stringify(a)); } catch (e) {}
+    try { localStorage.setItem(AUTH_KEY, JSON.stringify(a)); return true; }
+    catch (e) { console.warn('saveAuth quota error', e); return false; }
   }
   function clearAuth() { try { localStorage.removeItem(AUTH_KEY); } catch (e) {} }
 
@@ -120,35 +122,49 @@
         const file = input.files[0];
         if (!file) return;
         if (!/^image\/(png|jpe?g|webp)$/.test(file.type)) { toast('Выберите картинку PNG/JPEG/WebP'); return; }
-        if (file.size > 500 * 1024) { toast('Картинка больше 500 КБ'); return; }
+        if (file.size > 2 * 1024 * 1024) { toast('Картинка больше 2 МБ'); return; }
         const reader = new FileReader();
         reader.onload = () => {
-          user.avatar = reader.result;
-          // маленькая копия для чата (48x48 JPEG)
+          const full = reader.result;
           const img = new Image();
           img.onload = () => {
+            // маленькая копия 40x40 JPEG — для чата и списка онлайн
+            let small = '';
             try {
               const c = document.createElement('canvas');
-              c.width = 48; c.height = 48;
+              c.width = 40; c.height = 40;
               const ctx = c.getContext('2d');
               const s = Math.min(img.width, img.height);
               const sx = (img.width - s) / 2, sy = (img.height - s) / 2;
-              ctx.drawImage(img, sx, sy, s, s, 0, 0, 48, 48);
-              const small = c.toDataURL('image/jpeg', 0.6);
-              user.avatarSmall = small.length < 3000 ? small : '';
-            } catch (e) { user.avatarSmall = ''; }
-            updateUser(user);
+              ctx.drawImage(img, sx, sy, s, s, 0, 0, 40, 40);
+              small = c.toDataURL('image/jpeg', 0.5);
+              if (small.length > 2600) small = '';
+            } catch (e) { small = ''; }
+
+            user.avatar = full;
+            user.avatarSmall = small;
+            if (!updateUser(user)) {
+              // not enough space - keep only the small copy
+              user.avatar = small || '';
+              if (!updateUser(user)) { toast('Не хватит места для аватара'); return; }
+              saveAuth(user);
+              if (avatarImg) avatarImg.src = user.avatar;
+              toast('Аватар сохранён (уменьшен)');
+              return;
+            }
+            if (!updateUser(user)) { toast('Не удалось сохранить — не хватиет места'); return; }
             saveAuth(user);
-            if (avatarImg) avatarImg.src = reader.result;
+            if (avatarImg) avatarImg.src = full;
             toast('Аватар обновлён');
           };
           img.onerror = () => {
-            updateUser(user);
+            user.avatar = full;
+            if (!updateUser(user)) { toast('Не удалось сохранить — не хватит места'); return; }
             saveAuth(user);
-            if (avatarImg) avatarImg.src = reader.result;
+            if (avatarImg) avatarImg.src = full;
             toast('Аватар обновлён');
           };
-          img.src = reader.result;
+          img.src = full;
         };
         reader.readAsDataURL(file);
       });
@@ -203,7 +219,7 @@
     const users = loadUsers();
     const idx = users.findIndex(u => u.username === user.username);
     if (idx >= 0) users[idx] = user; else users.push(user);
-    saveUsers(users);
+    return saveUsers(users);
   }
 
   function userStatusEl() { return document.getElementById('user-status'); }
