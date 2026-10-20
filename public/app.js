@@ -130,6 +130,9 @@
       if (toLogin) toLogin.addEventListener('click', () => switchTab('login'));
       if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
 
+      // глобальный доступ к окну входа (из чата и других мест)
+      window.openAuthModal = function (tab) { open(); if (tab) switchTab(tab); };
+
       function switchTab(target) {
         const lt = document.getElementById('auth-login-tab');
         const rt = document.getElementById('auth-register-tab');
@@ -566,13 +569,15 @@
     function connect() {
       if (closed) return;
       try {
-        es = new EventSource(NTFY_BASE + '/' + topic + '/json?since=10m');
+        // ВАЖНО: /sse отдаёт text/event-stream (EventSource не принимает /json — это x-ndjson)
+        es = new EventSource(NTFY_BASE + '/' + topic + '/sse?since=10m');
         es.onopen = function () { if (onStatus) onStatus('online'); };
         es.onmessage = function (ev) {
           if (onStatus) onStatus('online');
           try {
             const data = JSON.parse(ev.data);
-            if (data.event !== 'message' || !data.message) return;
+            if (data.event && data.event !== 'message') return;
+            if (!data.message) return;
             handler(JSON.parse(data.message));
           } catch (e) {}
         };
@@ -631,8 +636,11 @@
     refreshMe();
 
     if (loginBtn) loginBtn.addEventListener('click', function () {
-      const openBtn = document.getElementById('nav-auth-btn');
-      if (openBtn) openBtn.click();
+      if (window.openAuthModal) window.openAuthModal('login');
+      else {
+        const openBtn = document.getElementById('nav-auth-btn');
+        if (openBtn) openBtn.click();
+      }
     });
 
     // история из localStorage + подписка на новые
