@@ -606,17 +606,6 @@ body {
   background: #fff;
   box-shadow: 0 0 0 2px var(--accent-blue), 0 4px 16px rgba(0,0,0,0.4);
 }
-.slider-dot::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 5px;
-  height: 5px;
-  margin: -2.5px 0 0 -2.5px;
-  border-radius: 50%;
-  background: var(--accent-blue);
-}
 
 .slider-hit-area {
   position: absolute;
