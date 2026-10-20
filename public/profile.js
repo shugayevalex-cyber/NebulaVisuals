@@ -8,6 +8,14 @@
   const AUTH_KEY = 'nebula_auth';
   const ADMIN_USER = { username: 'qqc0d', email: 'shugayevalex@gmail.com' };
 
+  /* EmailJS config — заполни своими данными (https://www.emailjs.com) */
+  const EMAILJS = {
+    enabled: false,          // включи true, когда заполнишь данные
+    publicKey: '',           // Public Key
+    serviceId: '',           // Service ID (Gmail и т.п.)
+    templateId: ''           // Template ID
+  };
+
   /* ---------- storage helpers ---------- */
   function loadUsers() {
     try { return JSON.parse(localStorage.getItem(USERS_KEY)) || []; } catch (e) { return []; }
@@ -134,10 +142,8 @@
       if (loadUsers().some(u => u.email.toLowerCase() === email && u.username !== user.username)) {
         msg.textContent = 'Такая почта уже используется'; msg.classList.add('err'); return;
       }
-      // generate 10-char random code
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      let code = '';
-      for (let i = 0; i < 10; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+      // generate 10-digit random code (numbers only)
+      const code = String(Math.floor(1000000000 + Math.random() * 9000000000));
       pendingCode = code;
       // NOTE: реальная отправка на почту требует бэкенда; здесь код показывается в демо-режиме
       msg.textContent = 'Код отправлен на ' + email + '. (Демо: ' + code + ')';
