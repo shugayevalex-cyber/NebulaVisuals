@@ -8,6 +8,8 @@
   const AUTH_KEY = 'nebula_auth';
   const ADMIN_USER = { username: 'qqc0d', email: 'shugayevalex@gmail.com' };
   const ADMIN_USERNAMES = ['qqc0d', 'k1ekks'];
+  const CODER_USERNAMES = ['qqc0d'];
+  const TESTER_USERNAMES = ['k1ekks'];
 
   /* EmailJS config — заполни своими данными (https://www.emailjs.com) */
   const EMAILJS = {
@@ -32,11 +34,16 @@
   }
   function clearAuth() { try { localStorage.removeItem(AUTH_KEY); } catch (e) {} }
 
-  function roleOf(user) {
-    if (ADMIN_USERNAMES.indexOf(user.username) !== -1) return 'admin';
-    if (user.username === ADMIN_USER.username && user.email.toLowerCase() === ADMIN_USER.email) return 'admin';
-    return 'user';
+  function rolesOf(user) {
+    if (!user) return [];
+    const r = [];
+    if (ADMIN_USERNAMES.indexOf(user.username) !== -1) r.push('admin');
+    else if (user.username === ADMIN_USER.username && String(user.email).toLowerCase() === ADMIN_USER.email) r.push('admin');
+    if (CODER_USERNAMES.indexOf(user.username) !== -1) r.push('coder');
+    if (TESTER_USERNAMES.indexOf(user.username) !== -1) r.push('tester');
+    return r;
   }
+  function roleOf(user) { return rolesOf(user).indexOf('admin') !== -1 ? 'admin' : 'user'; }
 
   /* ---------- toast ---------- */
   function toast(msg) {
@@ -79,10 +86,9 @@
     setText('email-value', user.email);
     const roleEl = document.getElementById('role-value');
     if (roleEl) {
-      roleEl.innerHTML = role === 'admin'
-        ? '<span class="badge-admin">admin</span> <span class="badge-coder">кодер</span>'
-        : 'Пользователь';
-      roleEl.classList.toggle('is-admin', role === 'admin');
+      const rs = rolesOf(user);
+      roleEl.innerHTML = rs.length ? badgesHtml(rs) : 'Пользователь';
+      roleEl.classList.toggle('is-admin', rs.indexOf('admin') !== -1);
     }
 
     // hint
@@ -182,11 +188,27 @@
   function setStatus(role) {
     const el = document.getElementById('user-status');
     if (!el) return;
-    if (role === 'admin') {
-      el.innerHTML = '<span class="badge-admin">admin</span> <span class="badge-coder">кодер</span>';
+    const rs = rolesOf(AuthStateUser());
+    if (rs.length) {
+      el.innerHTML = badgesHtml(rs);
     } else {
       el.textContent = 'Пользователь';
     }
+  }
+
+  // Текущий пользователь из localStorage
+  function AuthStateUser() {
+    const a = loadAuth();
+    if (!a) return null;
+    const users = loadUsers();
+    return users.find(u => u.username === a.username) || a;
+  }
+
+  // Бейджи ролей: admin (зелёный), кодер (фиолетовый), тестировщик (голубой)
+  function badgesHtml(roles) {
+    const map = { admin: 'admin', coder: 'кодер', tester: 'тестировщик' };
+    const cls = { admin: 'badge-admin', coder: 'badge-coder', tester: 'badge-tester' };
+    return roles.map(r => '<span class="' + cls[r] + '">' + map[r] + '</span>').join(' ');
   }
   function setText(id, val) {
     const el = document.getElementById(id);

@@ -236,6 +236,30 @@
     <div class="faq" id="faq-list"></div>
   </section>
 
+  <!-- CHAT -->
+  <section class="section section-chat" id="chat">
+    <div class="section-header">
+      <div class="section-tag">Чат</div>
+      <h2 class="section-title">Онлайн-чат Nebula Visuals</h2>
+      <p class="section-sub">Общайся с игроками — ники подсвечиваются по роли</p>
+    </div>
+    <div class="chat-box">
+      <div class="chat-main">
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input-row">
+          <input type="text" id="chat-nick" placeholder="Твой ник" maxlength="16" autocomplete="off">
+          <input type="text" id="chat-text" placeholder="Напиши сообщение..." maxlength="300" autocomplete="off">
+          <button class="btn btn-primary" id="chat-send">Отправить</button>
+        </div>
+        <div class="form-msg" id="chat-msg"></div>
+      </div>
+      <aside class="chat-online">
+        <h3>Онлайн <span id="online-count" class="online-count">0</span></h3>
+        <ul class="online-list" id="online-list"></ul>
+      </aside>
+    </div>
+  </section>
+
 </main>
 
 <footer class="footer" id="footer">

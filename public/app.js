@@ -9,6 +9,31 @@
   const AUTH_KEY = 'nebula_auth';
   const ADMIN = { username: 'qqc0d', email: 'shugayevalex@gmail.com' };
   const ADMIN_USERNAMES = ['qqc0d', 'k1ekks'];
+  const CODER_USERNAMES = ['qqc0d'];
+  const TESTER_USERNAMES = ['k1ekks'];
+
+  // Роли пользователя: admin / coder / tester (могут совмещаться)
+  function rolesOf(user) {
+    if (!user) return [];
+    const r = [];
+    if (ADMIN_USERNAMES.indexOf(user.username) !== -1) r.push('admin');
+    else if (user.username === ADMIN.username && String(user.email).toLowerCase() === ADMIN.email) r.push('admin');
+    if (CODER_USERNAMES.indexOf(user.username) !== -1) r.push('coder');
+    if (TESTER_USERNAMES.indexOf(user.username) !== -1) r.push('tester');
+    return r;
+  }
+
+  // CSS-класс ника по ролям (комбо = градиент)
+  function nickClass(username, email) {
+    const r = rolesOf({ username: username, email: email || '' });
+    if (r.length === 0) return 'nick-user';
+    if (r.length === 1) return 'nick-' + r[0];
+    if (r.indexOf('admin') !== -1 && r.indexOf('coder') !== -1 && r.indexOf('tester') !== -1) return 'nick-grad-all';
+    if (r.indexOf('admin') !== -1 && r.indexOf('coder') !== -1) return 'nick-grad';
+    if (r.indexOf('admin') !== -1 && r.indexOf('tester') !== -1) return 'nick-grad-admin-tester';
+    if (r.indexOf('coder') !== -1 && r.indexOf('tester') !== -1) return 'nick-grad-coder-tester';
+    return 'nick-' + r[0];
+  }
 
   function loadUsers() {
     try { return JSON.parse(localStorage.getItem(USERS_KEY)) || []; } catch (e) { return []; }
@@ -305,6 +330,119 @@
       e.preventDefault();
       window.location.href = '/profile.html';
     });
+  }
+
+  /* ================= CHAT ================= */
+  const CHAT_KEY = 'nebula_chat';
+  const CHAT_MAX = 120;
+
+  function loadChat() {
+    try { return JSON.parse(localStorage.getItem(CHAT_KEY)) || []; } catch (e) { return []; }
+  }
+  function saveChat(list) {
+    try { localStorage.setItem(CHAT_KEY, JSON.stringify(list.slice(-CHAT_MAX))); } catch (e) {}
+  }
+
+  function escHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function renderChat() {
+    const box = document.getElementById('chat-messages');
+    if (!box) return;
+    const list = loadChat();
+    if (list.length === 0) {
+      box.innerHTML = '<div class="chat-empty">Сообщений пока нет. Напиши первым!</div>';
+      return;
+    }
+    const users = loadUsers();
+    box.innerHTML = list.map(m => {
+      const u = users.find(x => x.username === m.nick);
+      const cls = nickClass(m.nick, u ? u.email : '');
+      const time = new Date(m.ts).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+      return '<div class="chat-msg">' +
+        '<div class="chat-avatar">' + escHtml(m.nick.charAt(0).toUpperCase()) + '</div>' +
+        '<div class="chat-body">' +
+          '<div class="chat-head">' +
+            '<span class="' + cls + '">' + escHtml(m.nick) + '</span>' +
+            '<span class="chat-time">' + time + '</span>' +
+          '</div>' +
+          '<div class="chat-text">' + escHtml(m.text) + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function renderOnline() {
+    const list = document.getElementById('online-list');
+    const cnt = document.getElementById('online-count');
+    if (!list) return;
+    const users = loadUsers();
+    const now = Date.now();
+    const online = users.filter(u => u.lastSeen && now - u.lastSeen < 5 * 60 * 1000);
+    if (cnt) cnt.textContent = online.length;
+    if (online.length === 0) {
+      list.innerHTML = '<li class="online-empty">Никого нет онлайн</li>';
+      return;
+    }
+    const sorted = online.slice().sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0));
+    list.innerHTML = sorted.map(u => {
+      const cls = nickClass(u.username, u.email);
+      return '<li><span class="online-dot"></span><span class="' + cls + '">' + escHtml(u.username) + '</span></li>';
+    }).join('');
+  }
+
+  function touchOnline() {
+    const auth = AuthState.user;
+    if (!auth) return;
+    const users = loadUsers();
+    const u = users.find(x => x.username === auth.username);
+    if (u) { u.lastSeen = Date.now(); saveUsers(users); }
+  }
+
+  const chatSend = document.getElementById('chat-send');
+  if (chatSend) {
+    const nickInput = document.getElementById('chat-nick');
+    const textInput = document.getElementById('chat-text');
+    const msg = document.getElementById('chat-msg');
+
+    if (nickInput && AuthState.user) {
+      nickInput.value = AuthState.user.username;
+      nickInput.readOnly = true;
+    }
+
+    chatSend.addEventListener('click', () => {
+      const nick = (nickInput && nickInput.value.trim()) || 'Гость';
+      const text = (textInput && textInput.value.trim()) || '';
+      if (msg) { msg.className = 'form-msg'; }
+      if (!text) { if (msg) { msg.textContent = 'Введите сообщение'; msg.classList.add('err'); } return; }
+      if (!/^[A-Za-z0-9_]{2,16}$/.test(nick)) { if (msg) { msg.textContent = 'Ник: 2–16 символов (латиница, цифры, _)'; msg.classList.add('err'); } return; }
+
+      const list = loadChat();
+      list.push({ nick: nick, text: text, ts: Date.now() });
+      saveChat(list);
+      if (textInput) textInput.value = '';
+      renderChat();
+      touchOnline();
+    });
+
+    if (textInput) {
+      textInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); chatSend.click(); }
+      });
+    }
+  }
+
+  if (document.getElementById('chat-messages')) {
+    renderChat();
+    renderOnline();
+    touchOnline();
+    setInterval(renderOnline, 5000);
+    setInterval(renderChat, 3000);
+    window.addEventListener('beforeunload', touchOnline);
   }
 
   /* ================= TOAST ================= */
