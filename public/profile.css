@@ -82,9 +82,18 @@ body {
 }
 .avatar-wrap:hover .avatar-edit { transform: scale(1.15); }
 
-.user-meta { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.user-meta { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .user-name { font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-status { font-size: 12px; font-weight: 600; color: var(--accent-blue); }
+.user-email { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.user-role { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; margin-top: 3px; }
+.role-icon { width: 14px; height: 14px; object-fit: contain; }
+
+.nav-icon-img { width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; }
+.btn-icon-img { width: 18px; height: 18px; object-fit: contain; }
+
+.badge-admin { color: var(--accent-green); font-weight: 700; }
+.badge-coder { color: var(--accent-blue); font-weight: 700; }
 
 .sidebar-nav { display: flex; flex-direction: column; gap: 6px; }
 .nav-item {

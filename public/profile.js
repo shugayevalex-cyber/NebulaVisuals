@@ -54,17 +54,24 @@
 
     // avatar
     setText('user-name', user.username);
-    setStatus(userStatusEl(), role);
+    setText('user-email', user.email);
+    setStatus(role);
     const avatar = user.avatar || '';
     const avatarImg = document.getElementById('avatar-img');
     if (avatarImg) avatarImg.src = avatar || '/logo-icon.png';
 
+    // role icon
+    const roleIcon = document.getElementById('role-icon');
+    if (roleIcon) roleIcon.src = role === 'admin' ? '/icons/admin.png' : '/icons/user.png';
+
     // home panel
-    setText('hwid-value', '—');
-    setText('resets-value', '0');
+    setText('nick-value', user.username);
+    setText('email-value', user.email);
     const roleEl = document.getElementById('role-value');
     if (roleEl) {
-      roleEl.textContent = role === 'admin' ? 'Админ' : 'Пользователь';
+      roleEl.innerHTML = role === 'admin'
+        ? '<span class="badge-admin">admin</span> <span class="badge-coder">кодер</span>'
+        : 'Пользователь';
       roleEl.classList.toggle('is-admin', role === 'admin');
     }
 
@@ -115,22 +122,51 @@
       window.open('https://drive.google.com/uc?export=download&id=1vV0IfVQDqHPpjdM_6LInXzrdtpCXWat_', '_blank');
     });
 
-    // change email
-    const saveEmail = document.getElementById('save-email');
-    if (saveEmail) saveEmail.addEventListener('click', () => {
+    // change email — send code then verify
+    let pendingCode = null;
+
+    const sendCode = document.getElementById('send-code');
+    if (sendCode) sendCode.addEventListener('click', () => {
       const email = document.getElementById('new-email').value.trim().toLowerCase();
       const msg = document.getElementById('email-msg');
       msg.className = 'form-msg';
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.textContent = 'Некорректный email'; msg.classList.add('err'); return; }
-      // duplicate check
+      if (loadUsers().some(u => u.email.toLowerCase() === email && u.username !== user.username)) {
+        msg.textContent = 'Такая почта уже используется'; msg.classList.add('err'); return;
+      }
+      // generate 10-char random code
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = '';
+      for (let i = 0; i < 10; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+      pendingCode = code;
+      // NOTE: реальная отправка на почту требует бэкенда; здесь код показывается в демо-режиме
+      msg.textContent = 'Код отправлен на ' + email + '. (Демо: ' + code + ')';
+      msg.classList.add('ok');
+      const codeInput = document.getElementById('email-code');
+      if (codeInput) codeInput.focus();
+      toast('Код отправлен на почту');
+    });
+
+    const saveEmail = document.getElementById('save-email');
+    if (saveEmail) saveEmail.addEventListener('click', () => {
+      const email = document.getElementById('new-email').value.trim().toLowerCase();
+      const code = document.getElementById('email-code').value.trim().toUpperCase();
+      const msg = document.getElementById('email-msg');
+      msg.className = 'form-msg';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.textContent = 'Некорректный email'; msg.classList.add('err'); return; }
+      if (!pendingCode) { msg.textContent = 'Сначала отправьте код на почту'; msg.classList.add('err'); return; }
+      if (code !== pendingCode) { msg.textContent = 'Неверный код'; msg.classList.add('err'); return; }
       if (loadUsers().some(u => u.email.toLowerCase() === email && u.username !== user.username)) {
         msg.textContent = 'Такая почта уже используется'; msg.classList.add('err'); return;
       }
       user.email = email;
       updateUser(user);
       saveAuth(user);
+      pendingCode = null;
       msg.textContent = 'Почта обновлена'; msg.classList.add('ok');
       document.getElementById('new-email').value = '';
+      document.getElementById('email-code').value = '';
+      setText('email-value', email);
       toast('Почта сохранена');
     });
 
@@ -174,10 +210,16 @@
   }
 
   function userStatusEl() { return document.getElementById('user-status'); }
-  function setStatus(el, role) {
+  function setStatus(role) {
+    const el = document.getElementById('user-status');
     if (!el) return;
-    el.textContent = role === 'admin' ? 'Админ' : 'Пользователь';
-    el.style.color = role === 'admin' ? 'var(--accent-green)' : 'var(--accent-blue)';
+    if (role === 'admin') {
+      el.textContent = 'admin • кодер';
+      el.style.color = 'var(--accent-green)';
+    } else {
+      el.textContent = 'Пользователь';
+      el.style.color = 'var(--accent-blue)';
+    }
   }
   function setText(id, val) {
     const el = document.getElementById(id);

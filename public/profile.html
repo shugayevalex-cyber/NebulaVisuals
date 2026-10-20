@@ -33,21 +33,28 @@
       </div>
       <div class="user-meta">
         <div class="user-name" id="user-name">—</div>
-        <div class="user-status" id="user-status">Пользователь</div>
+        <div class="user-email" id="user-email">—</div>
+        <div class="user-role" id="user-role">
+          <img src="/icons/user.png" alt="" class="role-icon" id="role-icon">
+          <span id="user-status">Пользователь</span>
+        </div>
       </div>
     </div>
 
     <nav class="sidebar-nav">
       <button class="nav-item active" data-tab="home">
-        <span class="nav-icon">🏠</span><span>Главная</span>
+        <img src="/icons/home.png" alt="" class="nav-icon-img">
+        <span>Главная</span>
       </button>
       <button class="nav-item" data-tab="security">
-        <span class="nav-icon">🔒</span><span>Безопасность</span>
+        <img src="/icons/security.png" alt="" class="nav-icon-img">
+        <span>Безопасность</span>
       </button>
     </nav>
 
     <button class="logout-btn" id="logout-btn">
-      <span class="nav-icon">🚪</span><span>Выйти</span>
+      <img src="/icons/exit.png" alt="" class="nav-icon-img">
+      <span>Выйти</span>
     </button>
   </aside>
 
@@ -62,12 +69,12 @@
     <section class="tab-content active" id="tab-home">
       <div class="panel">
         <div class="panel-row">
-          <span class="panel-label">Идентификатор устройства (HWID)</span>
-          <span class="panel-value" id="hwid-value">—</span>
+          <span class="panel-label">Ник</span>
+          <span class="panel-value" id="nick-value">—</span>
         </div>
         <div class="panel-row">
-          <span class="panel-label">Сбросы HWID</span>
-          <span class="panel-value" id="resets-value">0</span>
+          <span class="panel-label">Почта</span>
+          <span class="panel-value" id="email-value">—</span>
         </div>
         <div class="panel-row">
           <span class="panel-label">Роль</span>
@@ -77,7 +84,7 @@
 
       <div class="actions">
         <button class="btn btn-primary btn-lg" id="download-btn">
-          <span class="btn-icon">↓</span>
+          <img src="/icons/download.png" alt="" class="btn-icon-img">
           <span class="btn-text">Скачать файл</span>
         </button>
       </div>
@@ -91,9 +98,14 @@
         <h3 class="panel-title">Сменить почту</h3>
         <div class="form-group">
           <label for="new-email">Новая почта</label>
-          <input type="email" id="new-email" placeholder="mail@example.com" autocomplete="email">
+          <input type="email" id="new-email" placeholder="mail@example.com" autocomplete="off">
         </div>
-        <button class="btn btn-primary" id="save-email">Сохранить почту</button>
+        <div class="form-group">
+          <label for="email-code">Введите код, который был прислан на вашу почту</label>
+          <input type="text" id="email-code" placeholder="10 символов" maxlength="10" autocomplete="off">
+        </div>
+        <button class="btn btn-primary" id="send-code">Отправить код</button>
+        <button class="btn btn-primary" id="save-email" style="margin-top:10px;">Сохранить почту</button>
         <div class="form-msg" id="email-msg"></div>
       </div>
 
