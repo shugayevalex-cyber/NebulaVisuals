@@ -183,7 +183,7 @@
     // download button — прямая ссылка, минует страницу превью и скан Google (быстрее)
     const dl = document.getElementById('download-btn');
     if (dl) dl.addEventListener('click', () => {
-      const url = 'https://drive.usercontent.google.com/download?id=1vV0IfVQDqHPpjdM_6LInXzrdtpCXWat_&export=download&confirm=t';
+      const url = 'https://drive.usercontent.google.com/download?id=1XhvT9Xj0QNPmuFkTObE5DFZLexOHn4Lw&export=download&confirm=t';
       const a = document.createElement('a');
       a.href = url;
       a.rel = 'noopener';
@@ -195,7 +195,6 @@
 
     // HWID
     setText('hwid-value', user.hwid || '—');
-    setText('hwid-resets', String(user.hwidResets || 0));
     const hwidInput = document.getElementById('hwid-input');
     if (hwidInput && user.hwid) hwidInput.placeholder = user.hwid;
 
@@ -213,14 +212,13 @@
           msg.textContent = 'Этот HWID уже привязан'; msg.classList.add('ok');
           return;
         }
-        // смена устройства = сброс
+        // смена устройства
         user.hwidResets = (user.hwidResets || 0) + 1;
       }
       user.hwid = val;
       if (!updateUser(user)) { msg.textContent = 'Не хватит места в браузере'; msg.classList.add('err'); return; }
       saveAuth(user);
       setText('hwid-value', val);
-      setText('hwid-resets', String(user.hwidResets || 0));
       msg.textContent = 'Устройство привязано'; msg.classList.add('ok');
       document.getElementById('hwid-input').value = '';
       toast('HWID привязан');
