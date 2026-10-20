@@ -38,12 +38,25 @@
   function loadUsers() {
     try { return JSON.parse(localStorage.getItem(USERS_KEY)) || []; } catch (e) { return []; }
   }
+  // Освободить место в localStorage (аватары в истории чата — самые тяжёлые)
+  function freeStorage() {
+    try { localStorage.removeItem(CHAT_KEY); } catch (e) {}
+    try {
+      const users = loadUsers();
+      let changed = false;
+      users.forEach(function (u) {
+        if (u.avatarSmall && u.avatarSmall.length > 3000) { u.avatarSmall = ''; changed = true; }
+        if (u.avatar && u.avatar.length > 14000) { u.avatar = u.avatarSmall || ''; changed = true; }
+      });
+      if (changed) localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    } catch (e) {}
+  }
+
   function saveUsers(u) {
     try { localStorage.setItem(USERS_KEY, JSON.stringify(u)); return true; }
     catch (e) {
       console.warn('saveUsers quota error', e);
-      // освобождаем историю чата и пробуем снова
-      try { localStorage.removeItem(CHAT_KEY); } catch (e2) {}
+      freeStorage();
       try { localStorage.setItem(USERS_KEY, JSON.stringify(u)); return true; }
       catch (e3) { return false; }
     }
@@ -70,22 +83,34 @@
       try { localStorage.setItem(AUTH_KEY, JSON.stringify(this.user)); return true; }
       catch (e) {
         console.warn('saveAuth quota error', e);
-        try { localStorage.removeItem(CHAT_KEY); } catch (e2) {}
+        freeStorage();
         try { localStorage.setItem(AUTH_KEY, JSON.stringify(this.user)); return true; }
-        catch (e3) { return false; }
+        catch (e3) {
+          // крайний случай — сохраняем сессию без аватара
+          try {
+            const lite = Object.assign({}, this.user, { avatar: '', avatarSmall: '' });
+            localStorage.setItem(AUTH_KEY, JSON.stringify(lite));
+            this.user = lite;
+            return true;
+          } catch (e4) { return false; }
+        }
       }
     },
 
     login(user, remember) {
       this.user = user;
-      if (remember !== false) this.save(); else localStorage.removeItem(AUTH_KEY);
+      let ok = true;
+      if (remember !== false) ok = this.save();
+      else { try { localStorage.removeItem(AUTH_KEY); } catch (e) {} }
       this.updateUI();
+      return ok;
     },
 
     register(user) {
       this.user = user;
-      this.save();
+      const ok = this.save();
       this.updateUI();
+      return ok;
     },
 
     logout() {
@@ -161,6 +186,11 @@
           if (!user || user.password !== p) { if (err) err.textContent = 'Неверный логин или пароль'; btn.disabled = false; btn.textContent = 'Войти'; return; }
           this.login(user, remember);
           if (ok) ok.textContent = 'Вход выполнен!';
+          if (remember && !localStorage.getItem(AUTH_KEY)) {
+            if (err) { err.textContent = 'Не удалось сохранить вход — очистите кеш сайта'; err.classList.add('err'); }
+            btn.disabled = false; btn.textContent = 'Войти';
+            return;
+          }
           btn.disabled = false; btn.textContent = 'Войти';
           document.getElementById('modal-login-username').value = '';
           document.getElementById('modal-login-password').value = '';
@@ -203,6 +233,11 @@
           }
           this.register(user);
           if (ok) ok.textContent = 'Регистрация успешна!';
+          if (!localStorage.getItem(AUTH_KEY)) {
+            if (err) { err.textContent = 'Не удалось сохранить вход — очистите кеш сайта (F12 → Application → Clear site data)'; err.classList.add('err'); }
+            btn.disabled = false; btn.textContent = 'Зарегистрироваться';
+            return;
+          }
           btn.disabled = false; btn.textContent = 'Зарегистрироваться';
           document.getElementById('modal-reg-username').value = '';
           document.getElementById('modal-reg-email').value = '';
@@ -380,10 +415,14 @@
   }
   function saveChat(list) {
     const data = list.slice(-CHAT_MAX);
-    try { localStorage.setItem(CHAT_KEY, JSON.stringify(data)); return true; }
+    // аватары храним только у последних 20 сообщений — экономим место в localStorage
+    const lite = data.map(function (m, i) {
+      if (i >= data.length - 20) return m;
+      return { id: m.id, n: m.n, x: m.x, ts: m.ts };
+    });
+    try { localStorage.setItem(CHAT_KEY, JSON.stringify(lite)); return true; }
     catch (e) {
-      // мало места — режем историю
-      try { localStorage.setItem(CHAT_KEY, JSON.stringify(data.slice(-30))); } catch (e2) {}
+      try { localStorage.setItem(CHAT_KEY, JSON.stringify(lite.slice(-20))); } catch (e2) {}
       return false;
     }
   }
