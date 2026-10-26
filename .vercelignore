@@ -1,0 +1,11 @@
+# Vercel не умеет файлы больше 100 МБ — установщик хостим на GitHub Releases.
+*.exe
+public/files/*.zip
+nebula-visuals-netlify.zip
+
+node_modules/
+data/
+*.log
+.env*
+.vercel
+set-verification.js
