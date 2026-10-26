@@ -192,7 +192,7 @@
     // сохранение (проводник), без страницы-посредника
     const dl = document.getElementById('download-btn');
     if (dl) dl.addEventListener('click', () => {
-      const url = 'https://github.com/shugayevalex-cyber/nebulavisuals/releases/download/v2.0.0/Nebula%20Visuals%20Setup%202.0.0.exe';
+      const url = 'https://github.com/shugayevalex-cyber/NebulaVisuals/releases/download/v2.0.0/Nebula.Visuals.Setup.2.0.0.exe';
       const a = document.createElement('a');
       a.href = url;
       a.rel = 'noopener';
