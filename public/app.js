@@ -7,6 +7,44 @@
   /* ================= AUTH STATE ================= */
   const USERS_KEY = 'nebula_users';
   const AUTH_KEY = 'nebula_auth';
+  const DEVICE_KEY = 'nebula_device_hwid';
+
+  // HWID устройства для сайта: стабильный отпечаток браузера.
+  // Считается один раз и сохраняется в localStorage, поэтому не меняется
+  // между перезагрузками — аккаунт остаётся привязанным к этому устройству.
+  function deviceHwid() {
+    try {
+      const saved = localStorage.getItem(DEVICE_KEY);
+      if (saved) return saved;
+    } catch (e) { /* ignore */ }
+    const parts = [];
+    try {
+      parts.push(navigator.userAgent || '');
+      parts.push(navigator.language || '');
+      parts.push(String(navigator.hardwareConcurrency || 0));
+      parts.push(String(navigator.maxTouchPoints || 0));
+      parts.push(String(screen.width) + 'x' + String(screen.height) + 'x' + String(screen.colorDepth));
+      parts.push(String(new Date().getTimezoneOffset()));
+    } catch (e) { /* ignore */ }
+    let hash = 0;
+    const raw = parts.join('|');
+    for (let i = 0; i < raw.length; i++) {
+      hash = ((hash << 5) - hash + raw.charCodeAt(i)) | 0;
+    }
+    const hwid = 'WEB' + Math.abs(hash).toString(16).toUpperCase().padStart(8, '0') +
+      (Math.abs(hash) % 65536).toString(16).toUpperCase().padStart(4, '0');
+    try { localStorage.setItem(DEVICE_KEY, hwid); } catch (e) { /* ignore */ }
+    return hwid;
+  }
+
+  // Автоматически подставляем HWID в поля формы входа/регистрации
+  function autofillHwid() {
+    const h = deviceHwid();
+    ['modal-login-hwid', 'modal-reg-hwid'].forEach(function (id) {
+      const el = document.getElementById(id);
+      if (el && !el.value) el.value = h;
+    });
+  }
   const ADMIN = { username: 'qqc0d', email: 'shugayevalex@gmail.com' };
   const ADMIN_USERNAMES = ['qqc0d', 'k1ekks', 'qqcoda'];
   const CODER_USERNAMES = ['qqc0d'];
@@ -146,7 +184,7 @@
       const toReg = document.getElementById('switch-to-register');
       const toLogin = document.getElementById('switch-to-login');
 
-      function open() { if (!modal) return; modal.hidden = false; modal.style.display = 'flex'; document.body.style.overflow = 'hidden'; switchTab('login'); }
+      function open() { if (!modal) return; modal.hidden = false; modal.style.display = 'flex'; document.body.style.overflow = 'hidden'; switchTab('login'); autofillHwid(); }
       function close() { if (!modal) return; modal.hidden = true; modal.style.display = 'none'; document.body.style.overflow = ''; clearErrors(); }
 
       if (openBtn) openBtn.addEventListener('click', open);
@@ -164,6 +202,7 @@
         if (!lt || !rt) return;
         if (target === 'register') { lt.hidden = true; rt.hidden = false; }
         else { rt.hidden = true; lt.hidden = false; }
+        autofillHwid();
         clearErrors();
       }
 
@@ -182,7 +221,75 @@
         const remember = document.getElementById('modal-remember').checked;
         if (!u || !p) { if (err) err.textContent = 'Введите ник/email и пароль'; return; }
         btn.disabled = true; btn.textContent = 'Вход...';
-        setTimeout(() => {
+        setTimeout(async () => {
+          // ГЛАВНОЕ: вход проверяется на сервере (там же, где и в лаунчере).
+          // Локальный список — запасной вариант, если сервер недоступен.
+          const codeInput = document.getElementById('modal-login-code');
+          const code = codeInput ? codeInput.value.trim() : '';
+          let srv = null;
+          try {
+            if (window.ChatBackend && window.ChatBackend.auth) {
+              srv = await window.ChatBackend.auth({ op: 'login', username: u, password: p, code: code });
+            }
+          } catch (e) { srv = null; }
+
+          // Аккаунт есть в локальном списке (создан до перехода на сервер)?
+          const localUser = loadUsers().find(x =>
+            x.username.toLowerCase() === u.toLowerCase() || x.email.toLowerCase() === u.toLowerCase());
+          const localPassOk = !!(localUser && localUser.password === p);
+
+          // Миграция: сервер ещё не знает этот аккаунт — заводим его
+          if (srv && srv.ok === false && localPassOk && srv.error === 'Неверный ник или пароль') {
+            try {
+              if (window.ChatBackend && window.ChatBackend.auth) {
+                await window.ChatBackend.auth({
+                  op: 'ensure', username: localUser.username,
+                  email: localUser.email || (localUser.username + '@nebu.la'), password: p
+                });
+                srv = await window.ChatBackend.auth({ op: 'login', username: u, password: p, code: code });
+              }
+            } catch (e) { /* ignore */ }
+          }
+
+          if (srv && srv.ok) {
+            const su = srv.user || {};
+            // Локальная копия профиля (аватар, RAM)
+            const local = loadUsers().find(x => x.username.toLowerCase() === String(su.username || '').toLowerCase()) || {};
+            // Привязка устройства — СВОЯ для браузера (у лаунчера свой HWID, не путаем их)
+            const localHwid = local.hwid || '';
+            if (localHwid && hwid && localHwid !== hwid) {
+              if (err) { err.textContent = 'Аккаунт привязан к другому устройству (HWID не совпадает)'; err.classList.add('err'); }
+              btn.disabled = false; btn.textContent = 'Войти';
+              return;
+            }
+            const merged = Object.assign({}, local, {
+              username: su.username || local.username,
+              email: su.email || local.email || '',
+              role: su.role || local.role || 'user',
+              hwid: localHwid || hwid,
+              password: p
+            });
+            const list = loadUsers();
+            const idx = list.findIndex(x => x.username.toLowerCase() === String(merged.username).toLowerCase());
+            if (idx >= 0) list[idx] = merged; else list.push(merged);
+            saveUsers(list);
+            this.login(merged, remember);
+            if (ok) ok.textContent = 'Вход выполнен!';
+            btn.disabled = false; btn.textContent = 'Войти';
+            document.getElementById('modal-login-username').value = '';
+            document.getElementById('modal-login-password').value = '';
+            if (codeInput) codeInput.value = '';
+            if (hwidInput) hwidInput.value = '';
+            setTimeout(close, 700);
+            return;
+          }
+          if (srv && srv.error) {
+            // Сервер ответил — показываем именно его ошибку
+            if (err) { err.textContent = srv.error; err.classList.add('err'); }
+            btn.disabled = false; btn.textContent = 'Войти';
+            return;
+          }
+          // Сервер недоступен — офлайн-проверка по локальному списку
           const users = loadUsers();
           const user = users.find(x => x.username.toLowerCase() === u.toLowerCase() || x.email.toLowerCase() === u.toLowerCase());
           if (!user || user.password !== p) { if (err) err.textContent = 'Неверный логин или пароль'; btn.disabled = false; btn.textContent = 'Войти'; return; }
@@ -240,7 +347,20 @@
         if (users.some(x => x.email.toLowerCase() === email)) { if (err) err.textContent = 'Такая почта уже зарегистрирована'; return; }
 
         btn.disabled = true; btn.textContent = 'Регистрация...';
-        setTimeout(() => {
+        setTimeout(async () => {
+          // Регистрация на сервере — чтобы аккаунт работал и в лаунчере
+          let srv = null;
+          try {
+            if (window.ChatBackend && window.ChatBackend.auth) {
+              srv = await window.ChatBackend.auth({ op: 'register', username: username, email: email, password: password });
+            }
+          } catch (e) { srv = null; }
+          if (srv && srv.ok === false) {
+            if (err) { err.textContent = srv.error || 'Ошибка регистрации'; err.classList.add('err'); }
+            btn.disabled = false; btn.textContent = 'Зарегистрироваться';
+            return;
+          }
+          // Сервер зарегистрировал аккаунт (или недоступен) — сохраняем локально
           const user = { username, email, password, ram: 4096, avatar: '', hwid: hwidReg, hwidResets: 0, joined: new Date().toISOString() };
           users.push(user);
           if (!saveUsers(users)) {
@@ -248,6 +368,10 @@
             if (err) { err.textContent = 'Не хватит места в браузере — очистите историю чата'; err.classList.add('err'); }
             btn.disabled = false; btn.textContent = 'Зарегистрироваться';
             return;
+          }
+          // Привязываем устройство к аккаунту на сервере
+          if (window.ChatBackend && window.ChatBackend.auth && hwidReg) {
+            try { window.ChatBackend.auth({ op: 'bind', username: username, hwid: hwidReg }); } catch (e) { /* ignore */ }
           }
           this.register(user);
           if (ok) ok.textContent = 'Регистрация успешна!';
@@ -334,7 +458,7 @@
     ['Какая версия Minecraft?', '1.21.4 на Fabric. Лаунчер сам тянет нужные библиотеки и моды.'],
     ['Как обновить клиент?', 'При выходе обновления лаунчер покажет уведомление. Нажми «Запустить» — он сам скачает новый мод и заменит старый.'],
     ['Есть ли сервер в моде?', 'Да! В моде есть встроенный сервер: поиск игроков, чат, друзья, голосовой чат, уведомления — всё работает внутри клиента.'],
-    ['Откуда скачивается лаунчер?', 'С Google Drive — прямая ссылка, без ожиданий и рекламы. Файл ~77 MB.']
+    ['Откуда скачивается лаунчер?', 'Прямо с сайта одной ссылкой — открывается сразу сохранение файла, без страницы-посредника. Файл ~175 MB.']
   ];
   const faqList = document.getElementById('faq-list');
   if (faqList) {
@@ -415,10 +539,15 @@
 
   /* ================= CHAT (ntfy.sh — общий онлайн-чат) ================= */
   const NTFY_BASE = 'https://ntfy.sh';
-  // Определяем бэкенд (прокси Vercel / Firebase / ntfy) до подписок
-  var backendReady = (window.ChatBackend && window.ChatBackend.detect)
-    ? window.ChatBackend.detect()
-    : Promise.resolve('ntfy');
+  // Определяем бэкенд в фоне. НЕ блокируем инициализацию чата:
+  // подписки и онлайн должны стартовать сразу (режим по умолчанию — прокси).
+  var backendReady = Promise.resolve('ready');
+  try {
+    if (window.ChatBackend && window.ChatBackend.detect) {
+      // запускаем определение, результат не ждём — режим уже 'proxy' по умолчанию
+      window.ChatBackend.detect().catch(function () {});
+    }
+  } catch (e) { /* игнорируем */ }
           const CHAT_KEY = 'nebula_chat';
   const CHAT_MAX = 80;
   const NICK_KEY = 'nebula_chat_nick';
@@ -432,7 +561,12 @@
   }
 
   function loadChat() {
-    try { return JSON.parse(localStorage.getItem(CHAT_KEY)) || []; } catch (e) { return []; }
+    try {
+      var list = JSON.parse(localStorage.getItem(CHAT_KEY)) || [];
+      var purgedAt = parseInt(localStorage.getItem(CHAT_KEY + '_purge') || '0', 10) || 0;
+      if (purgedAt) list = list.filter(function (m) { return m && (m.ts || 0) > purgedAt; });
+      return list;
+    } catch (e) { return []; }
   }
   function saveChat(list) {
     const data = list.slice(-CHAT_MAX);
@@ -497,7 +631,9 @@
     return a.avatar || '';
   }
 
-  // Маленький аватар 40x40 (для чата и списка онлайн)
+  // Маленький аватар 40x40 (для чата и списка онлайн).
+  // Если у пользователя дефолтная иконка — используем дефолтную картинку сайта.
+  const DEFAULT_AVATAR = '/logo-icon.png';
   function myAvatarSmall() {
     const a = AuthState.user;
     if (!a) return Promise.resolve('');
@@ -506,7 +642,8 @@
     const full = (u && u.avatar) || a.avatar || '';
     const cached = (u && u.avatarSmall) || a.avatarSmall || '';
     if (cached) return Promise.resolve(cached);
-    if (!full) return Promise.resolve('');
+    // нет своей иконки → отдаём дефолтную (она же показывается в шапке)
+    if (!full) return Promise.resolve(DEFAULT_AVATAR);
     // генерируем маленькую копию из полной
     return new Promise(function (resolve) {
       const img = new Image();
@@ -519,165 +656,98 @@
           const sx = (img.width - s) / 2, sy = (img.height - s) / 2;
           ctx.drawImage(img, sx, sy, s, s, 0, 0, 40, 40);
           const small = c.toDataURL('image/jpeg', 0.5);
-          resolve(small.length > 2600 ? '' : small);
-        } catch (e) { resolve(''); }
+          resolve(small.length > 2600 ? DEFAULT_AVATAR : small);
+        } catch (e) { resolve(DEFAULT_AVATAR); }
       };
-      img.onerror = function () { resolve(''); };
+      img.onerror = function () { resolve(DEFAULT_AVATAR); };
       img.src = full;
     });
   }
 
   // ---------- Рендер чата ----------
   let chatMessages = [];
-  let pinnedMessage = null;
-  const PINNED_KEY = 'nebula_chat_pinned';
-  const PIN_OWNER = 'qqc0d';
+  let mutes = {};         // ник -> { until, rule, label }
+  let muteTimer = null;
+  const BOT_NICK = 'FilterBotByqqc0d';
+  const BOT_AVATAR = '/bot-avatar.jpg';
 
-  function isPinOwner() {
-    return !!(AuthState.user && AuthState.user.username === PIN_OWNER);
+  // ---------- МУТЫ ----------
+  // muteActive показывает, что мут уже "включился" в интерфейсе.
+  // После перезагрузки страницы мут снимается (muteActive = false) —
+  // блокировка включается только при реальной попытке отправить сообщение.
+  let muteActive = false;
+
+  function applyMutes(map) {
+    mutes = map || {};
+    // мут действует и после перезагрузки страницы — показываем сразу
+    muteActive = true;
+    checkMyMute();
   }
 
-  function loadPinned() {
-    try { pinnedMessage = JSON.parse(localStorage.getItem(PINNED_KEY)); }
-    catch (e) { pinnedMessage = null; }
-  }
-  function savePinned(m) {
-    pinnedMessage = m || null;
-    try {
-      if (pinnedMessage) localStorage.setItem(PINNED_KEY, JSON.stringify(pinnedMessage));
-      else localStorage.removeItem(PINNED_KEY);
-    } catch (e) {}
-    renderPinned();
+  // Включить показ мута (после отклонённой отправки)
+  function activateMute(info) {
+    muteActive = true;
+    if (info) mutes[(AuthState.user && AuthState.user.username) || ''] = info;
+    checkMyMute();
   }
 
-  function renderPinned() {
-    const box = document.getElementById('chat-pinned');
-    const body = document.getElementById('chat-pinned-body');
-    if (!box || !body) return;
-    if (!pinnedMessage) { box.hidden = true; return; }
-    const users = loadUsers();
-    const nick = pinnedMessage.n || pinnedMessage.nick || 'Гость';
-    const text = pinnedMessage.x != null ? pinnedMessage.x : (pinnedMessage.text || '');
-    const u = users.find(function (x) { return x.username === nick; });
-    const cls = nickClass(nick, u ? u.email : '');
-    body.innerHTML = '<span class="chat-pinned-nick ' + cls + '">' + escHtml(nick) + '</span>' +
-      '<span class="chat-pinned-text">' + escHtml(text) + '</span>';
-    box.hidden = false;
-  }
-
-  function pinMessage(m) {
-    const payload = {
-      id: m.id, n: m.n || m.nick, x: m.x != null ? m.x : m.text,
-      a: m.a || '', ts: m.ts || Date.now()
-    };
-    // в отдельную тему — хранится для новых посетителей
-    publish('state', { t: 'pin', msg: payload });
-    // и в чат — чтобы появилось мгновенно у всех, кто онлайн
-    publish('chat', { t: 'pin', msg: payload });
-    savePinned(payload);
-    renderChat();
-    toast('Сообщение закреплено');
-  }
-
-  function unpinMessage() {
-    publish('state', { t: 'unpin' });
-    publish('chat', { t: 'unpin' });
-    savePinned(null);
-    renderChat();
-    toast('Сообщение откреплено');
-  }
-
-  // Загрузка общего состояния (закреплённое сообщение) — видно всем новым посетителям
-  function refreshSharedState() {
-    fetchTopic('state', '24h').then(function (items) {
-      if (!items.length) return;
-      const last = items[items.length - 1];
-      if (last && last.t === 'pin' && last.msg) {
-        if (!pinnedMessage || pinnedMessage.id !== last.msg.id) {
-          savePinned(last.msg);
-          renderChat();
-        }
-      } else if (last && last.t === 'unpin') {
-        if (pinnedMessage) { savePinned(null); renderChat(); }
-      }
-    });
-  }
-
-  // Онлайн-список: пинги из отдельной (лёгкой) темы
-  function refreshOnlineFromHistory() {
-    fetchTopic('presence', '2m').then(function (items) {
-      let changed = false;
-      items.forEach(function (m) {
-        if (m && m.t === 'p' && m.n) {
-          if (!onlineMap[m.n] || onlineMap[m.n].ts !== m.ts) {
-            onlineMap[m.n] = { ts: m.ts || Date.now(), a: m.a || '' };
-            changed = true;
-          }
-        }
-      });
-      if (changed) renderOnline();
-    });
-  }
-
-  function renderChat() {
-    const box = document.getElementById('chat-messages');
-    if (!box) return;
-    if (chatMessages.length === 0) {
-      box.innerHTML = '<div class="chat-empty">Сообщений пока нет. Напиши первым!</div>';
+  function checkMyMute() {
+    const nick = (AuthState.user && AuthState.user.username) || '';
+    const notice = document.getElementById('chat-mute-notice');
+    const title = document.getElementById('chat-mute-title');
+    const text = document.getElementById('chat-mute-text');
+    const badge = document.getElementById('chat-mute-badge');
+    const badgeText = document.getElementById('chat-mute-badge-text');
+    const input = document.getElementById('chat-text');
+    const send = document.getElementById('chat-send');
+    const m = nick && mutes[nick];
+    if (!m || !muteActive) {
+      if (notice) notice.hidden = true;
+      if (badge) badge.hidden = true;
+      if (input) input.disabled = false;
+      if (send) send.disabled = false;
+      if (muteTimer) { clearInterval(muteTimer); muteTimer = null; }
       return;
     }
-    const users = loadUsers();
-    const canPin = isPinOwner();
-    const pinId = pinnedMessage ? pinnedMessage.id : null;
-    let html = '';
-    let lastDay = '';
-    chatMessages.forEach(function (m) {
-      // поддержка обоих форматов: новый (n/x) и старый (nick/text)
-      const nick = m.n || m.nick || 'Гость';
-      const text = m.x != null ? m.x : (m.text || '');
-      const ts = m.ts || Date.now();
-      const dk = dayKey(ts);
-      if (dk !== lastDay) {
-        lastDay = dk;
-        html += '<div class="chat-day"><span>' + escHtml(formatDay(ts)) + '</span></div>';
-      }
-      const u = users.find(function (x) { return x.username === nick; });
-      const cls = nickClass(nick, u ? u.email : '');
-      const av = m.a
-        ? '<img src="' + m.a + '" alt="" class="chat-avatar-img">'
-        : '<span class="chat-avatar-letter">' + escHtml(nick.charAt(0).toUpperCase()) + '</span>';
-      const isPinned = pinId && m.id === pinId;
-      const pinBtn = canPin
-        ? '<button type="button" class="chat-pin-btn' + (isPinned ? ' is-pinned' : '') + '" data-pin-id="' + escHtml(m.id || '') + '" title="' + (isPinned ? 'Открепить' : 'Закрепить') + '">📌</button>'
-        : '';
-      html += '<div class="chat-msg">' +
-        '<div class="chat-avatar">' + av + '</div>' +
-        '<div class="chat-body">' +
-          '<div class="chat-head">' +
-            '<span class="' + cls + '">' + escHtml(nick) + '</span>' +
-            '<span class="chat-time">' + escHtml(formatMsgTime(ts)) + '</span>' +
-            pinBtn +
-          '</div>' +
-          '<div class="chat-text">' + escHtml(text) + '</div>' +
-        '</div>' +
-      '</div>';
-    });
-    box.innerHTML = html;
-    box.scrollTop = box.scrollHeight;
+    const left = m.until - Date.now();
+    if (left <= 0) { delete mutes[nick]; muteActive = false; checkMyMute(); return; }
+    if (notice) notice.hidden = false;
+    if (title) title.textContent = 'Вы были замучены за пункт номер ' + m.rule;
+    if (text) text.textContent = 'Вы сможете снова писать через ' + fmtLeft(left);
+    // Индикатор под полем ввода
+    if (badge) badge.hidden = false;
+    if (badgeText) badgeText.textContent = 'У вас мут — писать можно через ' + fmtLeft(left);
+    if (!muteTimer) {
+      muteTimer = setInterval(function () { checkMyMute(); }, 1000);
+    }
+  }
 
-    // обработчики кнопок закрепления
-    box.querySelectorAll('.chat-pin-btn').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        const id = btn.getAttribute('data-pin-id');
-        if (pinnedMessage && pinnedMessage.id === id) { unpinMessage(); return; }
-        const msg = chatMessages.find(function (x) { return x.id === id; });
-        if (msg) pinMessage(msg);
-      });
-    });
+  function fmtLeft(ms) {
+    let s = Math.max(0, Math.floor(ms / 1000));
+    const d = Math.floor(s / 86400); s -= d * 86400;
+    const h = Math.floor(s / 3600); s -= h * 3600;
+    const m = Math.floor(s / 60); s -= m * 60;
+    const parts = [];
+    if (d) parts.push(d + ' дн');
+    if (h) parts.push(h + ' ч');
+    if (m) parts.push(m + ' мин');
+    parts.push(s + ' сек');
+    return parts.join(' ');
+  }
+
+  // Тряска поля ввода при попытке написать в мут
+  function shakeMuted() {
+    const input = document.getElementById('chat-text');
+    const row = document.getElementById('chat-input-row');
+    const target = row || input;
+    if (!target) return;
+    target.classList.remove('is-shaking');
+    void target.offsetWidth;
+    target.classList.add('is-shaking');
   }
 
   // ---------- Онлайн ----------
+
   const onlineMap = {};
 
   function renderOnline() {
@@ -685,16 +755,20 @@
     const cnt = document.getElementById('online-count');
     if (!list) return;
     const now = Date.now();
-    const alive = Object.keys(onlineMap).filter(function (k) { return now - onlineMap[k].ts < 80000; });
+    // бот всегда онлайн, даже если с сервера не пришёл
+    onlineMap[BOT_NICK] = onlineMap[BOT_NICK] || { ts: now, a: BOT_AVATAR, bot: true };
+    onlineMap[BOT_NICK].ts = now;
+    onlineMap[BOT_NICK].a = BOT_AVATAR;
+
+    const alive = Object.keys(onlineMap).filter(function (k) {
+      if (k === BOT_NICK) return true;
+      return now - onlineMap[k].ts < 80000;
+    });
     if (cnt) cnt.textContent = alive.length;
-    if (alive.length === 0) {
-      list.innerHTML = '<li class="online-empty">Никого нет онлайн</li>';
-      return;
-    }
     const users = loadUsers();
     const me = (AuthState.user && AuthState.user.username) || '';
 
-    // ранг роли: админ > кодер > тестировщик > пользователь
+    // ранг: админ > кодер > тестировщик > обычный игрок
     function rank(nick) {
       const u = users.find(function (x) { return x.username === nick; });
       const r = rolesOf({ username: nick, email: u ? u.email : '' });
@@ -704,34 +778,136 @@
       return 1;
     }
 
-    // сначала главные (админы), потом свой ник, потом остальные по свежести
-    alive.sort(function (a, b) {
+    const bots = alive.filter(function (k) { return k === BOT_NICK; });
+    const humans = alive.filter(function (k) { return k !== BOT_NICK; });
+    humans.sort(function (a, b) {
       const ra = rank(a), rb = rank(b);
       if (ra !== rb) return rb - ra;
       if (a === me) return -1;
       if (b === me) return 1;
       return (onlineMap[b].ts || 0) - (onlineMap[a].ts || 0);
     });
-    list.innerHTML = alive.map(function (k) {
+
+    function rowHtml(k) {
       const o = onlineMap[k];
+      const isBot = k === BOT_NICK;
       const u = users.find(function (x) { return x.username === k; });
-      const cls = nickClass(k, u ? u.email : '');
-      const av = o.a
-        ? '<img src="' + o.a + '" alt="" class="online-avatar-img">'
-        : '<span class="online-avatar-letter">' + escHtml(k.charAt(0).toUpperCase()) + '</span>';
-      return '<li' + (k === me ? ' class="is-me"' : '') + '><span class="online-dot"></span>' + av + '<span class="' + cls + '">' + escHtml(k) + '</span>' + (k === me ? '<span class="online-me-tag">вы</span>' : '') + '</li>';
-    }).join('');
+      const cls = isBot ? 'nick-bot' : nickClass(k, u ? u.email : '');
+      // нет своей иконки → дефолтная иконка сайта (не буква)
+      const src = o.a || DEFAULT_AVATAR;
+      const av = '<img src="' + src + '" alt="" class="online-avatar-img' + (isBot ? ' is-bot' : '') + '" onerror="this.style.display=\'none\'">';
+      const tag = isBot ? '<span class="online-bot-tag">бот</span>' : (k === me ? '<span class="online-me-tag">вы</span>' : '');
+      const liCls = [];
+      if (k === me) liCls.push('is-me');
+      if (isBot) liCls.push('is-bot');
+      return '<li' + (liCls.length ? ' class="' + liCls.join(' ') + '"' : '') + '><span class="online-dot"></span>' + av +
+        '<span class="' + cls + '">' + escHtml(k) + '</span>' + tag + '</li>';
+    }
+
+    // Заголовки групп: сначала «Боты», потом «Админы», потом «Игроки»
+    const admins = humans.filter(function (k) { return rank(k) >= 4; });
+    const others = humans.filter(function (k) { return rank(k) < 4; });
+
+    let html = '';
+    // шапка «Онлайн» + линия
+    html += '<li class="online-head">Онлайн</li>';
+    html += '<li class="online-sep" aria-hidden="true"></li>';
+    // боты
+    html += '<li class="online-group">Боты:</li>';
+    if (bots.length) html += bots.map(rowHtml).join('');
+    else html += '<li class="online-empty">ботов нет</li>';
+    // линия
+    html += '<li class="online-sep" aria-hidden="true"></li>';
+    // админы
+    html += '<li class="online-group">Админы:</li>';
+    if (admins.length) html += admins.map(rowHtml).join('');
+    else html += '<li class="online-empty">админов нет</li>';
+    // линия
+    html += '<li class="online-sep" aria-hidden="true"></li>';
+    // игроки
+    html += '<li class="online-group">Игроки:</li>';
+    if (others.length) html += others.map(rowHtml).join('');
+    else html += '<li class="online-empty">Пока никого больше нет</li>';
+
+    if (!alive.length) html = '<li class="online-empty">Никого нет онлайн</li>';
+    list.innerHTML = html;
   }
 
-  // ---------- Публикация / подписка (ntfy.sh) ----------
+  // Подтягиваем список онлайна с сервера (общий для всех)
+  function refreshOnlineFromHistory() {
+    if (window.ChatBackend && window.ChatBackend.read) {
+      window.ChatBackend.read('presence').then(function (items) {
+        if (items && items.length) {
+          items.forEach(function (m) {
+            if (!m || !m.n) return;
+            const cur = onlineMap[m.n];
+            if (!cur || (m.ts || 0) > (cur.ts || 0)) {
+              onlineMap[m.n] = { ts: m.ts || Date.now(), a: m.a || '' };
+            }
+          });
+        }
+        renderOnline();
+      });
+      return;
+    }
+    fetch(NTFY_BASE + '/nebula-visuals-presence-v1/json?since=3m&poll=1')
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (txt) {
+        txt.split('\n').forEach(function (line) {
+          line = line.trim();
+          if (!line) return;
+          try {
+            const ev = JSON.parse(line);
+            if (ev.event !== 'message' || !ev.message) return;
+            const m = JSON.parse(ev.message);
+            if (m && m.n) onlineMap[m.n] = { ts: m.ts || Date.now(), a: m.a || '' };
+          } catch (e) {}
+        });
+        renderOnline();
+      })
+      .catch(function () { renderOnline(); });
+  }
+
+  // ---------- Онлайн «в игре» (пинги лаунчера через ntfy) ----------
+  // Лаунчер шлёт ник в тему nebula-visuals-ingame-v1 каждые 60 с, пока
+  // Minecraft работает. Считаем уникальных игроков за последние 5 минут.
+  const INGAME_TOPIC = 'nebula-visuals-ingame-v1';
+  const INGAME_TTL = 5 * 60 * 1000;
+  function refreshIngame() {
+    fetch(NTFY_BASE + '/' + INGAME_TOPIC + '/json?since=6m&poll=1')
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (txt) {
+        const last = {};
+        txt.split('\n').forEach(function (line) {
+          line = line.trim();
+          if (!line) return;
+          try {
+            const ev = JSON.parse(line);
+            if (ev.event !== 'message' || !ev.message) return;
+            const m = JSON.parse(ev.message);
+            if (m && m.n) {
+              const ts = m.ts || Date.now();
+              if (!last[m.n] || ts > last[m.n]) last[m.n] = ts;
+            }
+          } catch (e) { /* ignore */ }
+        });
+        const now = Date.now();
+        const count = Object.keys(last).filter(function (n) { return now - last[n] <= INGAME_TTL; }).length;
+        const el = document.getElementById('ingame-count');
+        if (el) el.textContent = String(count);
+      })
+      .catch(function () { /* ignore */ });
+  }
+  refreshIngame();
+  setInterval(refreshIngame, 60000);
+
+  // ---------- Публикация / подписка ----------
   function publish(topic, payload) {
-    try {
-      fetch(NTFY_BASE + '/' + topic, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-        body: JSON.stringify(payload)
-      }).catch(function () {});
-    } catch (e) {}
+    // через бэкенд (прокси) — возвращает Promise с результатом модерации
+    if (window.ChatBackend && window.ChatBackend.publish) {
+      return window.ChatBackend.publish(topic, payload);
+    }
+    return Promise.resolve({ ok: true });
   }
 
   // Чтение последних сообщений темы (ntfy отдаёт JSON-строки)
@@ -756,40 +932,73 @@
   }
 
   function subscribe(topic, handler, onStatus) {
-    let es = null;
-    let closed = false;
-    function connect() {
-      if (closed) return;
-      try {
-        // ВАЖНО: /sse отдаёт text/event-stream (EventSource не принимает /json — это x-ndjson)
-        es = new EventSource(NTFY_BASE + '/' + topic + '/sse?since=10m');
-        es.onopen = function () { if (onStatus) onStatus('online'); };
-        es.onmessage = function (ev) {
-          if (onStatus) onStatus('online');
-          try {
-            const data = JSON.parse(ev.data);
-            if (data.event && data.event !== 'message') return;
-            if (!data.message) return;
-            handler(JSON.parse(data.message));
-          } catch (e) {}
-        };
-        es.onerror = function () {
-          if (onStatus) onStatus('offline');
-          try { es.close(); } catch (e) {}
-          setTimeout(connect, 5000);
-        };
-      } catch (e) {
-        if (onStatus) onStatus('offline');
-        setTimeout(connect, 5000);
-      }
+    // через бэкенд (прокси/Firebase) — SSE ntfy недоступен из региона
+    if (window.ChatBackend && window.ChatBackend.stream) {
+      return window.ChatBackend.stream(topic, handler, onStatus);
     }
-    connect();
-    return { close: function () { closed = true; try { es.close(); } catch (e) {} } };
+    return { close: function () {} };
+  }
+
+  function renderChat() {
+    const box = document.getElementById('chat-messages');
+    if (!box) return;
+    if (chatMessages.length === 0) {
+      box.innerHTML = '<div class="chat-empty">Сообщений пока нет. Напиши первым!</div>';
+      return;
+    }
+    const users = loadUsers();
+    let html = '';
+    let lastDay = '';
+    chatMessages.forEach(function (m) {
+      const nick = m.n || m.nick || 'Гость';
+      const text = m.x != null ? m.x : (m.text || '');
+      const ts = m.ts || Date.now();
+      const dk = dayKey(ts);
+      if (dk !== lastDay) {
+        lastDay = dk;
+        html += '<div class="chat-day"><span>' + escHtml(formatDay(ts)) + '</span></div>';
+      }
+      const u = users.find(function (x) { return x.username === nick; });
+      const cls = nickClass(nick, u ? u.email : '');
+      const isBot = nick === BOT_NICK;
+      // нет аватарки → показываем дефолтную иконку (бот — свою)
+      const avSrc = m.a || (isBot ? BOT_AVATAR : DEFAULT_AVATAR);
+      const av = '<img src="' + avSrc + '" alt="" class="chat-avatar-img' + (isBot ? ' bot' : '') + '" onerror="this.style.display=\'none\'">';
+      html += '<div class="chat-msg' + (isBot ? ' is-bot' : '') + '">' +
+        '<div class="chat-avatar">' + av + '</div>' +
+        '<div class="chat-body">' +
+          '<div class="chat-head">' +
+            '<span class="' + cls + '">' + escHtml(nick) + '</span>' +
+            '<span class="chat-time">' + escHtml(formatMsgTime(ts)) + '</span>' +
+          '</div>' +
+          '<div class="chat-text">' + escHtml(text) + '</div>' +
+        '</div>' +
+      '</div>';
+    });
+    box.innerHTML = html;
+    box.scrollTop = box.scrollHeight;
   }
 
   function addMessage(m) {
     if (!m || !m.n || !m.x) return;
     if (chatMessages.some(function (x) { return x.id === m.id; })) return;
+
+    // Если на сервере была очистка (purge) — локальные старые сообщения убираем,
+    // а всё, что старше момента очистки, не добавляем вовсе.
+    var purgedAt = (typeof window !== 'undefined' && window.__purgedAt) || 0;
+    if (purgedAt) {
+      try {
+        var known = parseInt(localStorage.getItem(CHAT_KEY + '_purge') || '0', 10) || 0;
+        if (purgedAt > known) localStorage.setItem(CHAT_KEY + '_purge', String(purgedAt));
+      } catch (e) {}
+    }
+    if (purgedAt && !addMessage._purgeApplied) {
+      addMessage._purgeApplied = true;
+      chatMessages = [];
+      saveChat(chatMessages);
+    }
+    if (purgedAt && (m.ts || 0) <= purgedAt) return;
+
     chatMessages.push(m);
     if (chatMessages.length > CHAT_MAX) chatMessages = chatMessages.slice(-CHAT_MAX);
     saveChat(chatMessages);
@@ -797,6 +1006,34 @@
   }
 
   // ---------- Инициализация чата ----------
+  // ВАЖНО: восстанавливаем аккаунт ДО отрисовки чата,
+  // иначе залогиненный пользователь видит "Войдите".
+  try { AuthState.init(); }
+  catch (initErr) { console.error('init error', initErr); }
+
+  // Онлайн 24/7: залогиненный пользователь появляется в списке СРАЗУ при заходе
+  // на сайт (а не только после первого сообщения).
+  window.__presencePing = function presencePingNow() {
+    try {
+      const a = AuthState && AuthState.user;
+      if (!a || !a.username) return;
+      const nick = a.username;
+      const send = function (av) {
+        try {
+          if (window.ChatBackend && window.ChatBackend.publish) {
+            window.ChatBackend.publish('presence', { t: 'p', n: nick, a: av || '/logo-icon.png', ts: Date.now() });
+          }
+        } catch (e) {}
+      };
+      // сначала быстрый пинг дефолтной иконкой, потом — с настоящей
+      send('/logo-icon.png');
+      myAvatarSmall().then(send).catch(function () {});
+    } catch (e) {}
+  };
+  window.__presencePing();
+  setInterval(window.__presencePing, 25000);
+  window.addEventListener('beforeunload', window.__presencePing);
+
   const chatSend = document.getElementById('chat-send');
   if (chatSend) {
    try {
@@ -836,14 +1073,8 @@
       }
     });
 
-    // история из localStorage + подписка на новые
+    // история из localStorage (черновик до загрузки с сервера)
     chatMessages = loadChat();
-    loadPinned();
-    renderPinned();
-
-    // кнопка открепления
-    const pinClose = document.getElementById('chat-pinned-close');
-    if (pinClose) pinClose.addEventListener('click', function () { unpinMessage(); });
     renderChat();
 
     // одна подписка на всё: сообщения + присутствие
@@ -863,11 +1094,85 @@
       if (hint) hint.hidden = (state === 'online');
     }
 
+    // ВАЖНО: подписываемся ТОЛЬКО после определения бэкенда,
+    // иначе чат уходит в ntfy (недоступен из региона) — сообщения и онлайн не видны.
+    Promise.resolve(backendReady).then(function () {
+      startChat();
+
+      function startChat() {
+        try {
+          // подтягиваем историю с сервера (общая для всех)
+          if (window.ChatBackend && window.ChatBackend.read) {
+            window.ChatBackend.read('chat', '12h').then(function (items) {
+              if (items && items.length) {
+                items.forEach(function (m) { if (m && m.n) addMessage(m); });
+              }
+              renderChat();
+            });
+            window.ChatBackend.read('mutes').then(function (items) {
+              if (items && items.length) applyMutes(items[0]);
+            });
+          }
+          wireChat();
+        } catch (e) { console.error('startChat', e); }
+      }
+    });
+
+    function doSend() {
+      const nick = myNick();
+      const text = (textInput && textInput.value.trim()) || '';
+      if (msg) { msg.className = 'form-msg'; }
+      // проверка мута
+      if (nick && mutes[nick] && mutes[nick].until > Date.now()) {
+        // мут "включается" только здесь — после перезагрузки страницы его нет
+        activateMute(mutes[nick]);
+        shakeMuted();
+        if (msg) { msg.textContent = 'Вы замучены. Подождите ' + fmtLeft(mutes[nick].until - Date.now()); msg.classList.add('err'); }
+        return;
+      }
+      if (!nick) { if (msg) { msg.textContent = 'Войдите, чтобы писать в чат'; msg.classList.add('err'); } return; }
+      if (!text) { if (msg) { msg.textContent = 'Введите сообщение'; msg.classList.add('err'); } return; }
+
+      myAvatarSmall().then(function (a) {
+        const payload = { id: Date.now() + '-' + Math.random().toString(36).slice(2, 7), n: nick, x: text, a: a, ts: Date.now() };
+        Promise.resolve(publish('chat', payload)).then(function (res) {
+          if (res && res.muted) {
+            // сервер замутил: показываем тряску + таймер, сообщение не добавляем
+            mutes[nick] = { until: res.until || (Date.now() + 3600000), rule: res.rule || 3, label: res.label || '' };
+            activateMute(mutes[nick]);
+            shakeMuted();
+            if (msg) { msg.textContent = 'Вы были замучены за пункт номер ' + (res.rule || 3); msg.classList.add('err'); }
+            checkMyMute();
+            return;
+          }
+          if (res && res.ok === false && res.left) {
+            shakeMuted();
+            if (msg) { msg.textContent = 'Вы замучены. Подождите ' + fmtLeft(res.left); msg.classList.add('err'); }
+            checkMyMute();
+            return;
+          }
+          addMessage(payload);
+          if (textInput) textInput.value = '';
+          if (textInput) textInput.focus();
+        });
+      });
+    }
+
+    // Кнопка «Отправить» должна работать всегда — вешаем обработчик сразу,
+    // не дожидаясь определения бэкенда (иначе кнопка «мёртвая»).
+    chatSend.addEventListener('click', function (e) {
+      e.preventDefault();
+      doSend();
+    });
+    if (textInput) {
+      textInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); if (!textInput.disabled) doSend(); }
+      });
+    }
+
+    function wireChat() {
     subscribe('chat', function (m) {
       if (!m) return;
-      // закрепление/открепление — приходит мгновенно в чат-тему
-      if (m.t === 'pin' && m.msg) { savePinned(m.msg); renderChat(); return; }
-      if (m.t === 'unpin') { savePinned(null); renderChat(); return; }
       if (!m.n) return;
       if (m.t === 'p') {
         onlineMap[m.n] = { ts: m.ts || Date.now(), a: m.a || '' };
@@ -877,23 +1182,15 @@
       addMessage(m);
     }, setStatus);
 
-    // общее состояние: закреплённое сообщение (видно всем)
-    subscribe('state', function (m) {
-      if (!m) return;
-      if (m.t === 'pin' && m.msg) {
-        savePinned(m.msg);
-        renderChat();
-        return;
-      }
-      if (m.t === 'unpin') {
-        savePinned(null);
-        renderChat();
-      }
+    // общее состояние: ничего не подмешиваем (бот больше не пишет по таймеру)
+    subscribe('state', function () { /* тихо */ }, function () { /* тихо */ });
+
+    // муты (с сервера)
+    subscribe('mutes', function (map) {
+      if (map) applyMutes(map);
     }, function () { /* тихо */ });
 
-    refreshSharedState();
     refreshOnlineFromHistory();
-    setInterval(refreshSharedState, 30000);
     setInterval(refreshOnlineFromHistory, 8000);
 
     // пинг в онлайн (отдельная лёгкая тема)
@@ -916,30 +1213,10 @@
       refreshMe();
       ping();
       renderOnline();
-      renderPinned();
+      checkMyMute();
       renderChat();
     });
-
-    chatSend.addEventListener('click', function () {
-      const nick = myNick();
-      const text = (textInput && textInput.value.trim()) || '';
-      if (msg) { msg.className = 'form-msg'; }
-      if (!nick) { if (msg) { msg.textContent = 'Войдите, чтобы писать в чат'; msg.classList.add('err'); } return; }
-      if (!text) { if (msg) { msg.textContent = 'Введите сообщение'; msg.classList.add('err'); } return; }
-
-      myAvatarSmall().then(function (a) {
-        const payload = { id: Date.now() + '-' + Math.random().toString(36).slice(2, 7), n: nick, x: text, a: a, ts: Date.now() };
-        publish('chat', payload);
-        addMessage(payload);
-        if (textInput) textInput.value = '';
-      });
-    });
-
-    if (textInput) {
-      textInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') { e.preventDefault(); if (!textInput.disabled) chatSend.click(); }
-      });
-    }
+    } // конец wireChat()
    } catch (chatErr) {
      console.error('chat init error', chatErr);
    }
@@ -958,6 +1235,5 @@
   const yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-  try { AuthState.init(); }
-  catch (initErr) { console.error('init error', initErr); }
+  // AuthState.init() уже вызван выше, до инициализации чата.
 })();

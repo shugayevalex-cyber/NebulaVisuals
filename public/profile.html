@@ -4,10 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Профиль — Nebula Visuals</title>
-<meta name="description" content="Личный кабинет Nebula Visuals">
+<meta name="description" content="Личный кабинет Nebula Visuals: профиль игрока, привязка устройства и код доступа к лаунчеру.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://nebulavisuals-public.vercel.app/profile.html">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nebulavisuals-public.vercel.app/profile.html">
+<meta property="og:title" content="Профиль — Nebula Visuals">
+<meta property="og:description" content="Личный кабинет Nebula Visuals: профиль игрока, привязка устройства и код доступа к лаунчеру.">
+<meta property="og:site_name" content="Nebula Visuals">
+<meta property="og:locale" content="ru_RU">
+<meta name="theme-color" content="#07080d">
 <link rel="icon" href="/icon.png" type="image/png">
-<link rel="preconnect" href="https://drive.usercontent.google.com" crossorigin>
-<link rel="dns-prefetch" href="https://drive.usercontent.google.com">
 <link rel="stylesheet" href="/profile.css">
 </head>
 <body>
@@ -104,13 +111,26 @@
     <section class="tab-content" id="tab-security">
       <div class="panel">
         <h3 class="panel-title">Привязка к устройству (HWID)</h3>
-        <p class="panel-desc">HWID появляется в лаунчере (вкладка «Профиль») после первого запуска. Вставьте его здесь — и аккаунт можно будет войти только с этого компьютера.</p>
+        <p class="panel-desc">HWID определяется автоматически и подставляется в форму входа. В аккаунте также хранится HWID компьютера из лаунчера — вход в лаунчер работает только с привязанного устройства.</p>
         <div class="form-group">
           <label for="hwid-input">HWID устройства</label>
-          <input type="text" id="hwid-input" placeholder="Например: 26ED5731A6344BD5F8423678204349C8" maxlength="64" autocomplete="off">
+          <input type="text" id="hwid-input" placeholder="Определяется автоматически" maxlength="64" autocomplete="off" readonly>
         </div>
         <button class="btn btn-primary" id="save-hwid">Привязать устройство</button>
+        <button class="btn btn-danger" id="reset-hwid">Сбросить привязку HWID</button>
         <div class="form-msg" id="hwid-msg"></div>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title">Код доступа к лаунчеру</h3>
+        <p class="panel-desc">Если код задан, его нужно ввести при входе в лаунчер. Пустое поле — код не требуется.</p>
+        <div class="form-group">
+          <label for="code-input">Код доступа</label>
+          <input type="text" id="code-input" placeholder="Например: 4821" maxlength="32" autocomplete="off">
+        </div>
+        <button class="btn btn-primary" id="save-code">Сохранить код</button>
+        <button class="btn btn-danger" id="clear-code">Убрать код</button>
+        <div class="form-msg" id="code-msg"></div>
       </div>
 
       <div class="panel">
@@ -136,6 +156,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
+<script src="/chat-backend.js"></script>
 <script src="/profile.js"></script>
 </body>
 </html>

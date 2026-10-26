@@ -9,5 +9,7 @@
   "keywords": [],
   "author": "Nebula Visuals",
   "license": "ISC",
-  "dependencies": {}
+  "dependencies": {
+    "@vercel/blob": "^2.8.2"
+  }
 }

@@ -19,23 +19,33 @@ var NTFY = {
 
 var ChatBackend = (function () {
 
-  var mode = 'ntfy';   // 'proxy' | 'firebase' | 'ntfy'
+  var mode = 'proxy';   // 'proxy' | 'firebase' | 'ntfy'
+  var modeLocked = false;   // после успешного определения режим больше не понижаем
 
   function topicName(path) { return NTFY[path] || path; }
 
   // ==================== PROXY (Vercel) ====================
   function proxyGet(since) {
-    return fetch(PROXY_URL + '?since=' + encodeURIComponent(since || '10m'), { headers: { 'Accept': 'application/json' } })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .catch(function () { return null; });
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var to = ctrl ? setTimeout(function () { ctrl.abort(); }, 30000) : null;
+    return fetch(PROXY_URL + '?since=' + encodeURIComponent(since || '10m'),
+      { headers: { 'Accept': 'application/json' }, signal: ctrl ? ctrl.signal : undefined })
+      .then(function (r) { if (to) clearTimeout(to); return r.ok ? r.json() : null; })
+      .catch(function () { if (to) clearTimeout(to); return null; });
   }
 
   function proxyPost(topic, payload) {
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var to = ctrl ? setTimeout(function () { ctrl.abort(); }, 12000) : null;
     return fetch(PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ topic: topic, payload: payload })
-    }).then(function (r) { return r.ok; }).catch(function () { return false; });
+      body: JSON.stringify({ topic: topic, payload: payload }),
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function (r) {
+      if (to) clearTimeout(to);
+      return r.json().catch(function () { return { ok: r.ok }; });
+    }).catch(function () { if (to) clearTimeout(to); return { ok: false }; });
   }
 
   // ==================== FIREBASE ====================
@@ -135,30 +145,66 @@ var ChatBackend = (function () {
   }
 
   // ==================== ОПРЕДЕЛЕНИЕ РЕЖИМА ====================
-  function detect() {
-    if (fbEnabled()) { mode = 'firebase'; return Promise.resolve(mode); }
+  // Прокси — основной режим. Если первая попытка не удалась (холодный старт),
+  // пробуем ещё несколько раз, прежде чем откатиться на ntfy.
+  function detectRetry(attempts) {
+    if (modeLocked) return Promise.resolve(mode);
     return proxyGet('10m').then(function (data) {
-      if (data && data.ok) { mode = 'proxy'; return mode; }
-      mode = 'ntfy';
+      if (data && data.ok) { mode = 'proxy'; modeLocked = true; return mode; }
+      if (attempts > 0) {
+        return new Promise(function (res) { setTimeout(res, 1500); })
+          .then(function () { return detectRetry(attempts - 1); });
+      }
+      mode = 'proxy';       // прокси всё равно основной — не уходим в ntfy
       return mode;
     });
   }
 
+  function detect() {
+    if (fbEnabled()) { mode = 'firebase'; modeLocked = true; return Promise.resolve(mode); }
+    if (modeLocked) return Promise.resolve(mode);
+    return detectRetry(5);
+  }
+
+  // ==================== АККАУНТЫ (через прокси) ====================
+  var authBase = '';
+
+  function authCall(payload) {
+    var url = (authBase || '') + PROXY_URL;
+    var body = Object.assign({}, payload);
+    if (body.op) { body.authOp = body.op; delete body.op; }
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var to = ctrl ? setTimeout(function () { ctrl.abort(); }, 15000) : null;
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function (r) {
+      if (to) clearTimeout(to);
+      return r.json().catch(function () { return { ok: false, error: 'Ошибка ответа сервера' }; });
+    }).catch(function () {
+      if (to) clearTimeout(to);
+      return { ok: false, error: 'Нет связи с сервером' };
+    });
+  }
+
   // ==================== PROXY: общий поллер ====================
-  var proxyListeners = { chat: [], state: [], presence: [] };
+  var proxyListeners = { chat: [], state: [], presence: [], mutes: [] };
   var proxyTimer = null;
   var proxySeen = { chat: {}, state: null };
 
   function proxyStart() {
     if (proxyTimer) return;
-    proxyTimer = setInterval(function () {
+    function poll() {
       proxyGet('10m').then(function (data) {
+        if (typeof window !== 'undefined' && data && data.purgedAt) window.__purgedAt = data.purgedAt;
         if (!data || !data.ok) {
-          proxyListeners.chat.concat(proxyListeners.state, proxyListeners.presence)
+          proxyListeners.chat.concat(proxyListeners.state, proxyListeners.presence, proxyListeners.mutes)
             .forEach(function (l) { if (l.onStatus) l.onStatus('offline'); });
           return;
         }
-        proxyListeners.chat.concat(proxyListeners.state, proxyListeners.presence)
+        proxyListeners.chat.concat(proxyListeners.state, proxyListeners.presence, proxyListeners.mutes)
           .forEach(function (l) { if (l.onStatus) l.onStatus('online'); });
 
         (data.chat || []).forEach(function (m) {
@@ -181,8 +227,16 @@ var ChatBackend = (function () {
           if (!m || !m.n) return;
           proxyListeners.presence.forEach(function (l) { l.onData(m); });
         });
+
+        if (data.mutes) {
+          proxyListeners.mutes.forEach(function (l) { l.onData(data.mutes); });
+        }
+      }).catch(function () {
+        // неудачный опрос — повторяем быстро, чтобы не терять сообщения
+        setTimeout(poll, 1200);
       });
-    }, 3000);
+    }
+    proxyTimer = setInterval(poll, 3000);
   }
 
   // ==================== ПУБЛИЧНОЕ API ====================
@@ -191,26 +245,32 @@ var ChatBackend = (function () {
     getMode: function () { return mode; },
     firebaseUrl: FIREBASE_DB_URL,
 
-    // подписка: для proxy — опрос, для firebase/ntfy — SSE
-    stream: function (path, onData, onStatus) {
-      if (mode === 'firebase') return fbStream(path, onData, onStatus);
-      if (mode === 'proxy') {
-        proxyStart();
-        var listener = { onData: onData, onStatus: onStatus };
-        proxyListeners[path] = proxyListeners[path] || [];
-        proxyListeners[path].push(listener);
-        return {
-          close: function () {
-            var arr = proxyListeners[path] || [];
-            var i = arr.indexOf(listener);
-            if (i !== -1) arr.splice(i, 1);
-          }
-        };
+    // аккаунты: register / login / bind / check / group / unmute
+    auth: function (payload) {
+      if (mode === 'firebase' || mode === 'ntfy') {
+        // серверные аккаунты доступны только через прокси
+        return authCall(payload);
       }
-      return ntfyStream(topicName(path), onData, onStatus);
+      return authCall(payload);
     },
 
-    // публикация
+    // подписка: прокси (опрос) — основной режим
+    stream: function (path, onData, onStatus) {
+      if (mode === 'firebase') return fbStream(path, onData, onStatus);
+      proxyStart();
+      var listener = { onData: onData, onStatus: onStatus };
+      proxyListeners[path] = proxyListeners[path] || [];
+      proxyListeners[path].push(listener);
+      return {
+        close: function () {
+          var arr = proxyListeners[path] || [];
+          var i = arr.indexOf(listener);
+          if (i !== -1) arr.splice(i, 1);
+        }
+      };
+    },
+
+    // публикация — всегда через прокси (кроме firebase)
     publish: function (path, payload) {
       if (mode === 'firebase') {
         if (path === 'chat') return fbSet('chat/' + Date.now() + '-' + Math.random().toString(36).slice(2, 7), payload);
@@ -218,9 +278,7 @@ var ChatBackend = (function () {
         if (path === 'presence') return fbSet('presence/' + (payload.n || 'guest'), { ts: payload.ts, a: payload.a || '' });
         return Promise.resolve(false);
       }
-      if (mode === 'proxy') return proxyPost(path, payload);
-      ntfyPublish(topicName(path), payload);
-      return Promise.resolve(true);
+      return proxyPost(path, payload);
     },
 
     // чтение истории
@@ -245,16 +303,16 @@ var ChatBackend = (function () {
         }
         return Promise.resolve([]);
       }
-      if (mode === 'proxy') {
-        return proxyGet(since || '24h').then(function (data) {
-          if (!data || !data.ok) return [];
-          if (path === 'chat') return data.chat || [];
-          if (path === 'state') return data.state ? [data.state] : [];
-          if (path === 'presence') return data.presence || [];
-          return [];
-        });
-      }
-      return ntfyGet(topicName(path), since || '24h');
+      // всегда читаем через прокси: ntfy напрямую из региона недоступен
+      return proxyGet(since || '24h').then(function (data) {
+        if (!data || !data.ok) return [];
+        if (typeof window !== 'undefined' && data.purgedAt) window.__purgedAt = data.purgedAt;
+        if (path === 'chat') return data.chat || [];
+        if (path === 'state') return data.state ? [data.state] : [];
+        if (path === 'presence') return data.presence || [];
+        if (path === 'mutes') return data.mutes ? [data.mutes] : [];
+        return [];
+      });
     }
   };
 })();

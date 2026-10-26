@@ -47,6 +47,14 @@
   }
   function roleOf(user) { return rolesOf(user).indexOf('admin') !== -1 ? 'admin' : 'user'; }
 
+  /* ---------- сервер (общая база аккаунтов с лаунчером) ---------- */
+  function serverAuth(payload) {
+    if (window.ChatBackend && window.ChatBackend.auth) {
+      try { return window.ChatBackend.auth(payload); } catch (e) { /* ignore */ }
+    }
+    return Promise.resolve(null);
+  }
+
   /* ---------- toast ---------- */
   function toast(msg) {
     const el = document.getElementById('toast');
@@ -180,14 +188,15 @@
       });
     }
 
-    // download button — прямая ссылка, минует страницу превью и скан Google (быстрее)
+    // download button — прямая ссылка на файл: браузер сразу открывает
+    // сохранение (проводник), без страницы-посредника
     const dl = document.getElementById('download-btn');
     if (dl) dl.addEventListener('click', () => {
-      const url = 'https://drive.usercontent.google.com/download?id=1XhvT9Xj0QNPmuFkTObE5DFZLexOHn4Lw&export=download&confirm=t';
+      const url = 'https://github.com/shugayevalex-cyber/nebulavisuals/releases/download/v2.0.0/Nebula%20Visuals%20Setup%202.0.0.exe';
       const a = document.createElement('a');
       a.href = url;
       a.rel = 'noopener';
-      a.download = 'Nebula Visuals Setup 1.5.0.exe';
+      a.download = 'Nebula Visuals Setup 2.0.0.exe';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -224,6 +233,101 @@
       toast('HWID привязан');
     });
 
+    // HWID устройства определяется автоматически
+    const deviceHwid = (function () {
+      try {
+        const saved = localStorage.getItem('nebula_device_hwid');
+        if (saved) return saved;
+      } catch (e) { /* ignore */ }
+      const parts = [];
+      try {
+        parts.push(navigator.userAgent || '');
+        parts.push(navigator.language || '');
+        parts.push(String(navigator.hardwareConcurrency || 0));
+        parts.push(String(navigator.maxTouchPoints || 0));
+        parts.push(String(screen.width) + 'x' + String(screen.height) + 'x' + String(screen.colorDepth));
+        parts.push(String(new Date().getTimezoneOffset()));
+      } catch (e) { /* ignore */ }
+      let hash = 0;
+      const raw = parts.join('|');
+      for (let i = 0; i < raw.length; i++) hash = ((hash << 5) - hash + raw.charCodeAt(i)) | 0;
+      const hwid = 'WEB' + Math.abs(hash).toString(16).toUpperCase().padStart(8, '0') +
+        (Math.abs(hash) % 65536).toString(16).toUpperCase().padStart(4, '0');
+      try { localStorage.setItem('nebula_device_hwid', hwid); } catch (e) { /* ignore */ }
+      return hwid;
+    })();
+    const hwidInputEl = document.getElementById('hwid-input');
+    if (hwidInputEl && !hwidInputEl.value) hwidInputEl.value = deviceHwid;
+
+    // Сброс привязки HWID (на сервере)
+    const resetHwid = document.getElementById('reset-hwid');
+    if (resetHwid) resetHwid.addEventListener('click', () => {
+      const msg = document.getElementById('hwid-msg');
+      msg.className = 'form-msg';
+      resetHwid.disabled = true;
+      serverAuth({ op: 'resetHwid', username: user.username, password: user.password || '' }).then((res) => {
+        resetHwid.disabled = false;
+        if (res && res.ok === false) {
+          msg.textContent = res.error || 'Не удалось сбросить привязку';
+          msg.classList.add('err');
+          return;
+        }
+        // локально тоже снимаем привязку
+        user.hwid = '';
+        updateUser(user);
+        saveAuth(user);
+        setText('hwid-value', '—');
+        msg.textContent = 'Привязка сброшена — аккаунт снова можно привязать к устройству';
+        msg.classList.add('ok');
+        toast('Привязка HWID сброшена');
+      });
+    });
+
+    // Код доступа к лаунчеру
+    const saveCode = document.getElementById('save-code');
+    if (saveCode) saveCode.addEventListener('click', () => {
+      const val = (document.getElementById('code-input').value || '').trim();
+      const msg = document.getElementById('code-msg');
+      msg.className = 'form-msg';
+      if (!val) { msg.textContent = 'Введите код (минимум 4 символа)'; msg.classList.add('err'); return; }
+      if (val.length < 4) { msg.textContent = 'Код: минимум 4 символа'; msg.classList.add('err'); return; }
+      saveCode.disabled = true;
+      serverAuth({ op: 'setCode', username: user.username, target: user.username, code: val }).then((res) => {
+        saveCode.disabled = false;
+        if (res && res.ok === false) {
+          msg.textContent = res.error || 'Не удалось сохранить код';
+          msg.classList.add('err');
+          return;
+        }
+        user.code = val;
+        updateUser(user);
+        msg.textContent = 'Код доступа сохранён — вводите его при входе в лаунчер';
+        msg.classList.add('ok');
+        document.getElementById('code-input').value = '';
+        toast('Код доступа сохранён');
+      });
+    });
+
+    const clearCode = document.getElementById('clear-code');
+    if (clearCode) clearCode.addEventListener('click', () => {
+      const msg = document.getElementById('code-msg');
+      msg.className = 'form-msg';
+      clearCode.disabled = true;
+      serverAuth({ op: 'setCode', username: user.username, target: user.username, code: '' }).then((res) => {
+        clearCode.disabled = false;
+        if (res && res.ok === false) {
+          msg.textContent = res.error || 'Не удалось убрать код';
+          msg.classList.add('err');
+          return;
+        }
+        user.code = '';
+        updateUser(user);
+        msg.textContent = 'Код доступа убран';
+        msg.classList.add('ok');
+        toast('Код доступа убран');
+      });
+    });
+
     // change password
     const savePass = document.getElementById('save-pass');
     if (savePass) savePass.addEventListener('click', () => {
@@ -236,9 +340,21 @@
       if (cur !== user.password) { msg.textContent = 'Текущий пароль неверен'; msg.classList.add('err'); return; }
       if (next.length < 6) { msg.textContent = 'Новый пароль минимум 6 символов'; msg.classList.add('err'); return; }
       if (next !== conf) { msg.textContent = 'Пароли не совпадают'; msg.classList.add('err'); return; }
+      const oldPass = cur;
       user.password = next;
       updateUser(user);
       saveAuth(user);
+      // Синхронизируем пароль с сервером, чтобы вход в лаунчере работал с тем же паролем
+      if (window.ChatBackend && window.ChatBackend.auth) {
+        try {
+          window.ChatBackend.auth({ op: 'setPassword', username: user.username, oldPassword: oldPass, newPassword: next })
+            .then(function (r) {
+              if (r && r.ok === false) {
+                toast('Пароль изменён в браузере, но не на сервере: ' + (r.error || ''));
+              }
+            });
+        } catch (e) { /* ignore */ }
+      }
       msg.textContent = 'Пароль обновлён'; msg.classList.add('ok');
       ['cur-pass', 'new-pass', 'conf-pass'].forEach(id => { document.getElementById(id).value = ''; });
       toast('Пароль сохранён');

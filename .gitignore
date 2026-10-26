@@ -3,3 +3,11 @@ data/
 downloads/*.exe
 *.log
 .env
+
+# большие бинарники установщика не ведём в git (хостинг — GitHub Releases)
+*.exe
+public/files/*.zip
+nebula-visuals-netlify.zip
+
+.vercel
+.env*

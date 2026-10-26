@@ -3,26 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nebula Visuals — Minecraft 1.21.4 Client</title>
-<meta name="description" content="Nebula Visuals — клиент Minecraft 1.21.4 с визуальными улучшениями, оптимизацией и сервером в моде. Скачай лаунчер и играй.">
+<title>Nebula Visuals — Клиент Minecraft 1.21.4 | Скачать лаунчер</title>
+<meta name="description" content="Nebula Visuals — бесплатный клиент Minecraft 1.21.4: визуальные улучшения, стабильный FPS, сервер в моде и онлайн-чат. Скачай лаунчер Nebula Visuals и играй на FunTime.">
+<meta name="keywords" content="Nebula Visuals, клиент Minecraft, Minecraft 1.21.4, скачать клиент Minecraft, Nebula Visuals лаунчер, клиент 1.21.4, FunTime, клиент для Minecraft, мод на Minecraft">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+<meta name="author" content="Nebula Visuals">
+<meta name="theme-color" content="#07080d">
+<meta name="google-site-verification" content="ВСТАВЬТЕ_КОД_ИЗ_GOOGLE_SEARCH_CONSOLE">
+<meta name="yandex-verification" content="ВСТАВЬТЕ_КОД_ИЗ_ЯНДЕКС_ВЕБМАСТЕР">
 <link rel="icon" href="/icon.png" type="image/png">
 <link rel="apple-touch-icon" href="/icon.png">
-<link rel="preconnect" href="https://drive.usercontent.google.com" crossorigin>
-<link rel="dns-prefetch" href="https://drive.usercontent.google.com">
 <link rel="stylesheet" href="/style.css">
 
 <!-- SEO -->
-<link rel="canonical" href="https://nebulavisuals.netlify.app/">
+<link rel="canonical" href="https://nebulavisuals-public.vercel.app/">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://nebulavisuals.netlify.app/">
-<meta property="og:title" content="Nebula Visuals — Minecraft 1.21.4 Client">
-<meta property="og:description" content="Клиент Minecraft 1.21.4 с визуальными улучшениями, оптимизацией и сервером в моде. Бесплатно.">
-<meta property="og:image" content="https://nebulavisuals.netlify.app/icon.png">
+<meta property="og:url" content="https://nebulavisuals-public.vercel.app/">
+<meta property="og:title" content="Nebula Visuals — Клиент Minecraft 1.21.4">
+<meta property="og:description" content="Бесплатный клиент Minecraft 1.21.4: визуальные улучшения, стабильный FPS, сервер в моде и онлайн-чат. Скачай лаунчер Nebula Visuals.">
+<meta property="og:image" content="https://nebulavisuals-public.vercel.app/icon.png">
+<meta property="og:image:alt" content="Nebula Visuals — клиент Minecraft 1.21.4">
 <meta property="og:site_name" content="Nebula Visuals">
+<meta property="og:locale" content="ru_RU">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Nebula Visuals — Minecraft 1.21.4 Client">
-<meta name="twitter:description" content="Клиент Minecraft 1.21.4 с визуальными улучшениями, оптимизацией и сервером в моде. Бесплатно.">
-<meta name="twitter:image" content="https://nebulavisuals.netlify.app/icon.png">
+<meta name="twitter:title" content="Nebula Visuals — Клиент Minecraft 1.21.4">
+<meta name="twitter:description" content="Бесплатный клиент Minecraft 1.21.4: визуальные улучшения, стабильный FPS, сервер в моде и онлайн-чат.">
+<meta name="twitter:image" content="https://nebulavisuals-public.vercel.app/icon.png">
 
 <!-- JSON-LD -->
 <script type="application/ld+json">
@@ -34,8 +40,15 @@
   "operatingSystem": "Windows 10/11",
   "offers": {"@type": "Offer", "price": "0", "priceCurrency": "RUB", "availability": "https://schema.org/InStock"},
   "description": "Клиент Minecraft 1.21.4 с визуальными улучшениями, оптимизацией FPS и автоустановкой игры. Сервер в моде: поиск игроков, чат, друзья.",
-  "url": "https://nebulavisuals.netlify.app/",
-  "image": "https://nebulavisuals.netlify.app/icon.png"
+  "url": "https://nebulavisuals-public.vercel.app/",
+  "image": "https://nebulavisuals-public.vercel.app/icon.png",
+  "downloadUrl": "https://nebulavisuals-public.vercel.app/",
+  "softwareVersion": "1.7.0",
+  "inLanguage": "ru-RU",
+  "potentialAction": {
+    "@type": "DownloadAction",
+    "target": "https://nebulavisuals-public.vercel.app/"
+  }
 }
 </script>
 </head>
@@ -111,6 +124,7 @@
       <div class="hero-stats">
         <div class="stat"><div class="stat-value">1.21.4</div><div class="stat-label">версия игры</div></div>
         <div class="stat"><div class="stat-value">Fabric</div><div class="stat-label">загрузчик модов</div></div>
+        <div class="stat"><div class="stat-value" id="ingame-count">0</div><div class="stat-label">сейчас в игре</div></div>
         <div class="stat"><div class="stat-value">0 ₽</div><div class="stat-label">бесплатно</div></div>
       </div>
     </div>
@@ -247,20 +261,37 @@
       <div class="chat-status" id="chat-status"><span class="chat-status-dot"></span><span id="chat-status-text">подключение...</span></div>
     </div>
     <div class="chat-box">
-      <div class="chat-main">
-        <div class="chat-pinned" id="chat-pinned" hidden>
-          <div class="chat-pinned-head">
-            <span class="chat-pinned-icon">📌</span>
-            <span>Закреплено</span>
-            <button type="button" class="chat-pinned-close" id="chat-pinned-close" title="Открепить">×</button>
+      <aside class="chat-rules-side" id="chat-rules">
+        <div class="chat-rules-head">
+          <img src="/bot-avatar.jpg" alt="" class="chat-rules-avatar">
+          <div>
+            <div class="chat-rules-name">FilterBotByqqc0d</div>
+            <div class="chat-rules-role">бот-модератор</div>
           </div>
-          <div class="chat-pinned-body" id="chat-pinned-body"></div>
         </div>
+        <h3>Правила чата</h3>
+        <ol class="chat-rules-list">
+          <li>Оскорбление родителей — <b>мут 3 часа</b></li>
+          <li>Реклама читов — <b>мут 1 день</b></li>
+          <li>Спам — <b>мут 1 час</b></li>
+          <li>18+ контент — <b>мут 3 дня</b></li>
+          <li>Админам можно всё, кроме правил 1, 2 и 4</li>
+        </ol>
+      </aside>
+      <div class="chat-main">
         <div class="chat-messages" id="chat-messages"></div>
         <div class="chat-offline-hint" id="chat-offline-hint" hidden>
           Чат временно недоступен — нет связи с сервером сообщений. Подключение восстановится автоматически.
         </div>
-        <div class="chat-input-row">
+        <div class="chat-mute-notice" id="chat-mute-notice" hidden>
+          <div class="chat-mute-title" id="chat-mute-title">Вы были замучены</div>
+          <div class="chat-mute-text" id="chat-mute-text"></div>
+        </div>
+        <div class="chat-mute-badge" id="chat-mute-badge" hidden>
+          <span class="chat-mute-badge-dot"></span>
+          <span id="chat-mute-badge-text">У вас мут</span>
+        </div>
+        <div class="chat-input-row" id="chat-input-row">
           <span class="chat-me" id="chat-me">
             <img src="/logo-icon.png" alt="" class="chat-me-avatar" id="chat-me-avatar">
             <span class="chat-me-nick" id="chat-me-nick">—</span>
@@ -313,8 +344,12 @@
           <input type="password" id="modal-login-password" name="password" placeholder="Введите пароль" required autocomplete="current-password">
         </div>
         <div class="form-group">
-          <label for="modal-login-hwid">HWID устройства <span class="label-hint">(если аккаунт привязан)</span></label>
-          <input type="text" id="modal-login-hwid" name="hwid" placeholder="Оставьте пустым, если не привязан" maxlength="64" autocomplete="off">
+          <label for="modal-login-hwid">HWID устройства <span class="label-hint">(подставляется автоматически)</span></label>
+          <input type="text" id="modal-login-hwid" name="hwid" placeholder="Определяется автоматически" maxlength="64" autocomplete="off" readonly>
+        </div>
+        <div class="form-group">
+          <label for="modal-login-code">Код доступа <span class="label-hint">(если аккаунт защищён кодом)</span></label>
+          <input type="text" id="modal-login-code" name="code" placeholder="Оставьте пустым, если код не требуется" maxlength="32" autocomplete="off">
         </div>
         <div class="form-row remember-row">
           <label class="switch-label">
@@ -355,8 +390,8 @@
           </div>
         </div>
         <div class="form-group">
-          <label for="modal-reg-hwid">HWID устройства <span class="label-hint">(можно привязать сразу)</span></label>
-          <input type="text" id="modal-reg-hwid" name="hwid" placeholder="Оставьте пустым, чтобы привязать позже" maxlength="64" autocomplete="off">
+          <label for="modal-reg-hwid">HWID устройства <span class="label-hint">(подставляется автоматически)</span></label>
+          <input type="text" id="modal-reg-hwid" name="hwid" placeholder="Определяется автоматически" maxlength="64" autocomplete="off" readonly>
         </div>
         <div class="form-error" id="modal-register-error"></div>
         <div class="form-ok" id="modal-register-ok"></div>
