@@ -1,432 +1,179 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nebula Visuals — Клиент Minecraft 1.21.4 | Скачать лаунчер</title>
-<meta name="description" content="Nebula Visuals — бесплатный клиент Minecraft 1.21.4: визуальные улучшения, стабильный FPS, сервер в моде и онлайн-чат. Скачай лаунчер Nebula Visuals и играй на FunTime.">
-<meta name="keywords" content="Nebula Visuals, клиент Minecraft, Minecraft 1.21.4, скачать клиент Minecraft, Nebula Visuals лаунчер, клиент 1.21.4, FunTime, клиент для Minecraft, мод на Minecraft">
-<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-<meta name="author" content="Nebula Visuals">
-<meta name="theme-color" content="#07080d">
-<meta name="google-site-verification" content="ВСТАВЬТЕ_КОД_ИЗ_GOOGLE_SEARCH_CONSOLE">
-<meta name="yandex-verification" content="ВСТАВЬТЕ_КОД_ИЗ_ЯНДЕКС_ВЕБМАСТЕР">
-<link rel="icon" href="/icon.png" type="image/png">
-<link rel="apple-touch-icon" href="/icon.png">
-<link rel="stylesheet" href="/style.css">
-
-<!-- SEO -->
-<link rel="canonical" href="https://nebulavisuals-public.vercel.app/">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://nebulavisuals-public.vercel.app/">
-<meta property="og:title" content="Nebula Visuals — Клиент Minecraft 1.21.4">
-<meta property="og:description" content="Бесплатный клиент Minecraft 1.21.4: визуальные улучшения, стабильный FPS, сервер в моде и онлайн-чат. Скачай лаунчер Nebula Visuals.">
-<meta property="og:image" content="https://nebulavisuals-public.vercel.app/icon.png">
-<meta property="og:image:alt" content="Nebula Visuals — клиент Minecraft 1.21.4">
-<meta property="og:site_name" content="Nebula Visuals">
-<meta property="og:locale" content="ru_RU">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Nebula Visuals — Клиент Minecraft 1.21.4">
-<meta name="twitter:description" content="Бесплатный клиент Minecraft 1.21.4: визуальные улучшения, стабильный FPS, сервер в моде и онлайн-чат.">
-<meta name="twitter:image" content="https://nebulavisuals-public.vercel.app/icon.png">
-
-<!-- JSON-LD -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "Nebula Visuals",
-  "applicationCategory": "GameApplication",
-  "operatingSystem": "Windows 10/11",
-  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "RUB", "availability": "https://schema.org/InStock"},
-  "description": "Клиент Minecraft 1.21.4 с визуальными улучшениями, оптимизацией FPS и автоустановкой игры. Сервер в моде: поиск игроков, чат, друзья.",
-  "url": "https://nebulavisuals-public.vercel.app/",
-  "image": "https://nebulavisuals-public.vercel.app/icon.png",
-  "downloadUrl": "https://nebulavisuals-public.vercel.app/",
-  "softwareVersion": "1.7.0",
-  "inLanguage": "ru-RU",
-  "potentialAction": {
-    "@type": "DownloadAction",
-    "target": "https://nebulavisuals-public.vercel.app/"
-  }
-}
-</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nebula Visuals — Клиент Minecraft 1.21.4 | Скачать</title>
+  <meta name="description"
+    content="Nebula Visuals — бесплатный клиент Minecraft 1.21.4. Один файл, быстрая установка.">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" href="/icon.png" type="image/png">
+  <link rel="canonical" href="https://nebulavisuals-public.vercel.app/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://nebulavisuals-public.vercel.app/">
+  <meta property="og:title" content="Nebula Visuals — Клиент Minecraft 1.21.4">
+  <meta property="og:description" content="Бесплатный клиент Minecraft 1.21.4. Скачать установщик.">
+  <meta property="og:image" content="https://nebulavisuals-public.vercel.app/icon.png">
+  <meta name="twitter:card" content="summary">
+  <link rel="stylesheet" href="/style.css">
 </head>
+
 <body>
-
-<!-- VIDEO BACKGROUND (FIXED - NO PARALLAX) -->
-<video id="bg-video" class="bg-video" autoplay muted loop playsinline poster="/icon.png">
-  <source src="https://github.com/shugayevalex-cyber/nebula-visuals-site/releases/latest/download/bg-video.mp4" type="video/mp4">
-</video>
-<div class="bg-overlay"></div>
-
-<!-- PARTICLES CANVAS -->
-<canvas id="particles" class="particles-canvas"></canvas>
-
-<header class="nav" id="nav">
-  <div class="nav-inner">
-    <a class="brand" href="#top" aria-label="Nebula Visuals — главная">
-      <span class="brand-mark" aria-hidden="true">
-        <img src="/logo-icon.png" alt="Nebula Visuals" class="brand-logo-icon">
-      </span>
-      <span class="brand-name">NebulaVisuals</span>
-    </a>
-    <nav class="nav-links" id="nav-links">
-      <a href="#download">Скачать</a>
-      <a href="#features">Возможности</a>
-      <a href="#server">Сервер в моде</a>
-      <a href="#screens">Скриншоты</a>
-      <a href="#chat">Чат</a>
-      <a href="#faq">Вопросы</a>
-    </nav>
-    <!-- Right side: Support + Telegram + Auth/Profile -->
-    <div class="nav-right">
-      <a class="nav-support" href="https://funpay.com/users/16569412/" target="_blank" rel="noopener" title="Поддержать автора на FunPay">
-        <span class="nav-support-heart">♥</span>
-        <span class="nav-support-text">Поддержать автора</span>
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="#home" aria-label="Nebula Visuals">
+        <img src="/logo-icon.png" alt="" class="brand-logo">
+        <span class="brand-name">Nebula Visuals</span>
       </a>
-      <a class="nav-tg" href="https://t.me/Nebula_visual" target="_blank" rel="noopener" aria-label="Telegram канал">
-        <img src="/tg_active.png" alt="Telegram" class="nav-tg-icon">
-      </a>
-      <!-- Auth button (shown when not logged in) -->
-      <button class="nav-auth" id="nav-auth-btn" aria-label="Войти или зарегистрироваться">
-        <span class="nav-auth-text">Войти</span>
-      </button>
-      <!-- Profile link (shown when logged in) — opens profile.html -->
-      <a class="nav-profile-link" id="nav-profile-link" href="/profile.html" aria-label="Профиль">
-        <span class="nav-profile-avatar" id="nav-profile-avatar">
-          <img src="/logo-icon.png" alt="" class="nav-avatar-img" id="nav-avatar-img">
-        </span>
-        <span class="nav-profile-name" id="nav-profile-name">Профиль</span>
-      </a>
-    </div>
-  </div>
-</header>
-
-<main id="top">
-
-  <!-- HERO -->
-  <section class="hero" id="hero">
-    <div class="hero-bg-glow"></div>
-    <div class="hero-grid-glow"></div>
-    <div class="hero-inner">
-      <div class="hero-badge">Minecraft 1.21.4 · Fabric</div>
-      <h1 class="hero-title">
-        <span class="hero-title-line">Клиент</span>
-        <span class="hero-title-line gradient-text">Nebula Visuals</span>
-      </h1>
-      <p class="hero-sub">Визуальные эффекты, стабильный FPS и умная оптимизация. Один клик — лаунчер сам скачает игру и запустит её.</p>
-      <div class="hero-buttons">
-        <a class="btn btn-primary btn-lg" id="download-btn" href="https://github.com/shugayevalex-cyber/NebulaVisuals/releases/download/v2.0.0/Nebula.Visuals.Setup.2.0.0.exe" download rel="noopener">
-          <span class="btn-text">Скачать установщик</span>
-          <span class="btn-icon" aria-hidden="true">⬇</span>
-        </a>
-        <a class="btn btn-ghost btn-lg" href="#server">
-          <span class="btn-text">Сервер в моде</span>
-          <span class="btn-icon" aria-hidden="true">🌐</span>
+      <nav class="nav-links">
+        <a href="#download">Скачать</a>
+        <a href="#features">Возможности</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <div class="nav-actions">
+        <a class="nav-cta" href="https://github.com/shugayevalex-cyber/NebulaVisuals/releases/download/v2.0.0/Nebula.Visuals.Setup.2.0.0.exe" download rel="noopener">
+          Скачать
         </a>
       </div>
-      <div class="hero-stats">
-        <div class="stat"><div class="stat-value">1.21.4</div><div class="stat-label">версия игры</div></div>
-        <div class="stat"><div class="stat-value">Fabric</div><div class="stat-label">загрузчик модов</div></div>
-        <div class="stat"><div class="stat-value" id="ingame-count">0</div><div class="stat-label">сейчас в игре</div></div>
-        <div class="stat"><div class="stat-value">0 ₽</div><div class="stat-label">бесплатно</div></div>
-      </div>
     </div>
-    <div class="hero-scroll" aria-hidden="true">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M12 5v14M19 12l-7 7-7-7"/>
-      </svg>
-    </div>
-  </section>
+  </header>
 
-  <!-- SCREENSHOTS COMPARISON (INTERACTIVE SLIDER) -->
-  <section class="section section-screens" id="screens">
-    <div class="section-header">
-      <div class="section-tag">Визуальное сравнение</div>
-      <h2 class="section-title">Без мода и с модом</h2>
-      <p class="section-sub">Перетащите ползунок, чтобы сравнить</p>
-    </div>
-    <div class="comparison-slider" id="comparison-slider">
-      <div class="slider-before">
-        <img src="/screen-with-mod.png" alt="Minecraft с Nebula Visuals" loading="lazy">
-      </div>
-      <div class="slider-after">
-        <img src="/screen-without-mod.png" alt="Minecraft без мода" loading="lazy">
-      </div>
-      <div class="slider-track"></div>
-      <div class="slider-handle" id="slider-handle" aria-label="Перетащите для сравнения" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0">
-        <div class="slider-dot"></div>
-        <div class="slider-hit-area"></div>
-      </div>
-    </div>
-    <div class="slider-labels">
-      <span class="label-before">С Nebula Visuals</span>
-      <span class="label-after">Без мода</span>
-    </div>
-  </section>
-
-  <!-- FEATURES -->
-  <section class="section" id="features">
-    <div class="section-header">
-      <div class="section-tag">Что умеет клиент</div>
-      <h2 class="section-title">Возможности Nebula Visuals</h2>
-      <p class="section-sub">Всё необходимое для комфортной игры в одном клиенте</p>
-    </div>
-    <div class="cards" id="features-cards"></div>
-  </section>
-
-  <!-- SERVER IN MOD -->
-  <section class="section section-server" id="server">
-    <div class="section-header">
-      <div class="section-tag">Сервер в моде</div>
-      <h2 class="section-title">Сервер в моде</h2>
-    </div>
-    <div class="server-grid">
-      <div class="server-card">
-        <div class="server-card-content">
-          <h3>Поиск игроков</h3>
-          <p>Находи других игроков Nebula Visuals по нику, статусу или режиму игры.</p>
+  <main id="home">
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-badge">Minecraft 1.21.4 · Fabric</div>
+        <h1 class="hero-title">Nebula Visuals</h1>
+        <p class="hero-sub">Бесплатный клиент для Minecraft. Чистый, быстрый, минималистичный.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://github.com/shugayevalex-cyber/NebulaVisuals/releases/download/v2.0.0/Nebula.Visuals.Setup.2.0.0.exe" download rel="noopener">
+            <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Скачать установщик
+          </a>
+          <a class="btn btn-ghost" href="https://t.me/Nebula_visual" target="_blank" rel="noopener">
+            Telegram
+          </a>
+        </div>
+        <div class="hero-meta">
+          <span>Windows</span>
+          <span>•</span>
+          <span>~181 МБ</span>
+          <span>•</span>
+          <span>Бесплатно</span>
         </div>
       </div>
-      <div class="server-card">
-        <div class="server-card-content">
-          <h3>Чат и сообщения</h3>
-          <p>Личные сообщения, групповые чаты, история переписки — всё внутри клиента.</p>
-        </div>
-      </div>
-      <div class="server-card">
-        <div class="server-card-content">
-          <h3>Друзья и группы</h3>
-          <p>Добавляй в друзья, создавай группы для совместной игры, види онлайн-статус.</p>
-        </div>
-      </div>
-      <div class="server-card">
-        <div class="server-card-content">
-          <h3>Уведомления</h3>
-          <p>Мгновенные пуши о новых сообщениях, приглашениях в игру, обновлениях мода.</p>
-        </div>
-      </div>
-      <div class="server-card">
-        <div class="server-card-content">
-          <h3>Голосовой чат</h3>
-          <p>Встроенный голосовой чат с низкой задержкой — общайся голосом в игре.</p>
-        </div>
-      </div>
-      <div class="server-card">
-        <div class="server-card-content">
-          <h3>Приватность</h3>
-          <p>Гибкие настройки: кто может писать, видеть твой статус, приглашать в игру.</p>
-        </div>
-      </div>
-    </div>
-    <div class="server-connect">
-      <a class="btn btn-primary btn-lg" href="https://t.me/Nebula_visual" target="_blank" rel="noopener">
-        <img src="/tg_active.png" alt="Telegram" class="btn-tg-icon">
-        <span class="btn-text">Telegram канал</span>
-      </a>
-    </div>
-  </section>
+    </section>
 
-  <!-- VIDEO REVIEW -->
-  <section class="section section-video" id="video-review">
-    <div class="section-header">
-      <div class="section-tag">Видео</div>
-      <h2 class="section-title">Обзор на Nebula Visuals</h2>
-    </div>
-    <div class="video-wrapper">
-      <div class="video-container">
-        <iframe 
-          src="https://www.youtube.com/embed/Gp-DQuTmuRQ" 
-          title="Обзор на Nebula Visuals" 
-          frameborder="0" 
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-          allowfullscreen>
-        </iframe>
+    <section class="section" id="features">
+      <div class="section-inner">
+        <header class="section-header">
+          <h2 class="section-title">Возможности</h2>
+        </header>
+        <div class="features-grid">
+          <article class="feature-card">
+            <h3>Оптимизация</h3>
+            <p>Больше FPS на слабых и средних ПК.</p>
+          </article>
+          <article class="feature-card">
+            <h3>Визуальные улучшения</h3>
+            <p>Подсветка, эффекты, минималистичный HUD.</p>
+          </article>
+          <article class="feature-card">
+            <h3>Автоустановка</h3>
+            <p>Лаунчер сам скачает нужные файлы и запустит игру.</p>
+          </article>
+          <article class="feature-card">
+            <h3>Сервер в моде</h3>
+            <p>Друзья, чаты, голосовой чат и поиск игроков.</p>
+          </article>
+        </div>
       </div>
-      <div class="video-caption">Обзор на Nebula Visuals</div>
-    </div>
-  </section>
+    </section>
 
-  <!-- FAQ -->
-  <section class="section" id="faq">
-    <div class="section-header">
-      <div class="section-tag">Частые вопросы</div>
-      <h2 class="section-title">Вопросы и ответы</h2>
-    </div>
-    <div class="faq" id="faq-list"></div>
-  </section>
-
-  <!-- CHAT -->
-  <section class="section section-chat" id="chat">
-    <div class="section-header">
-      <div class="section-tag">Чат</div>
-      <h2 class="section-title">Онлайн-чат Nebula Visuals</h2>
-      <p class="section-sub">Общайся с игроками — ники подсвечиваются по роли</p>
-      <div class="chat-status" id="chat-status"><span class="chat-status-dot"></span><span id="chat-status-text">подключение...</span></div>
-    </div>
-    <div class="chat-box">
-      <aside class="chat-rules-side" id="chat-rules">
-        <div class="chat-rules-head">
-          <img src="/bot-avatar.jpg" alt="" class="chat-rules-avatar">
-          <div>
-            <div class="chat-rules-name">FilterBotByqqc0d</div>
-            <div class="chat-rules-role">бот-модератор</div>
+    <section class="section section-download" id="download">
+      <div class="section-inner">
+        <header class="section-header">
+          <h2 class="section-title">Скачать</h2>
+          <p class="section-sub">Установи Nebula Visuals одним кликом</p>
+        </header>
+        <div class="download-panel">
+          <div class="download-info">
+            <div class="download-name">Nebula.Visuals.Setup.2.0.0.exe</div>
+            <div class="download-meta">Windows 10/11 • ~301 МБ • v2.0.0</div>
           </div>
+          <a class="btn btn-primary btn-large" href="https://github.com/shugayevalex-cyber/NebulaVisuals/releases/download/v2.0.0/Nebula.Visuals.Setup.2.0.0.exe" download rel="noopener">
+            <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Скачать
+          </a>
         </div>
-        <h3>Правила чата</h3>
-        <ol class="chat-rules-list">
-          <li>Оскорбление родителей — <b>мут 3 часа</b></li>
-          <li>Реклама читов — <b>мут 1 день</b></li>
-          <li>Спам — <b>мут 1 час</b></li>
-          <li>18+ контент — <b>мут 3 дня</b></li>
-          <li>Админам можно всё, кроме правил 1, 2 и 4</li>
-        </ol>
-      </aside>
-      <div class="chat-main">
-        <div class="chat-messages" id="chat-messages"></div>
-        <div class="chat-offline-hint" id="chat-offline-hint" hidden>
-          Чат временно недоступен — нет связи с сервером сообщений. Подключение восстановится автоматически.
-        </div>
-        <div class="chat-mute-notice" id="chat-mute-notice" hidden>
-          <div class="chat-mute-title" id="chat-mute-title">Вы были замучены</div>
-          <div class="chat-mute-text" id="chat-mute-text"></div>
-        </div>
-        <div class="chat-mute-badge" id="chat-mute-badge" hidden>
-          <span class="chat-mute-badge-dot"></span>
-          <span id="chat-mute-badge-text">У вас мут</span>
-        </div>
-        <div class="chat-input-row" id="chat-input-row">
-          <span class="chat-me" id="chat-me">
-            <img src="/logo-icon.png" alt="" class="chat-me-avatar" id="chat-me-avatar">
-            <span class="chat-me-nick" id="chat-me-nick">—</span>
-          </span>
-          <input type="text" id="chat-text" placeholder="Напиши сообщение..." maxlength="300" autocomplete="off">
-          <button class="btn btn-primary" id="chat-send">Отправить</button>
-        </div>
-        <div class="chat-login-hint" id="chat-login-hint" hidden>
-          <button type="button" class="modal-switch-btn" id="chat-login-btn">Войдите</button>, чтобы писать в чат
-        </div>
-        <div class="form-msg" id="chat-msg"></div>
       </div>
-      <aside class="chat-online">
-        <h3>Онлайн <span id="online-count" class="online-count">0</span></h3>
-        <ul class="online-list" id="online-list"></ul>
-      </aside>
-    </div>
-  </section>
+    </section>
 
-  <!-- DOWNLOAD -->
-  <section class="section" id="download">
-    <div class="section-header">
-      <div class="section-tag">Скачать</div>
-      <h2 class="section-title">Установи Nebula Visuals</h2>
-      <p class="section-sub">Один файл — лаунчер сам скачает игру и запустит её. Бесплатно.</p>
-    </div>
-    <div class="file-download">
-      <a class="btn btn-primary btn-lg" href="https://github.com/shugayevalex-cyber/NebulaVisuals/releases/download/v2.0.0/Nebula.Visuals.Setup.2.0.0.exe" download rel="noopener">
-        <span class="btn-text">Скачать установщик</span>
-        <span class="btn-icon" aria-hidden="true">⬇</span>
-      </a>
-      <p class="section-sub" style="margin-top:12px;font-size:13px;opacity:.7;">Windows · ~181 МБ · версия 2.0.0</p>
-    </div>
-  </section>
+    <section class="section" id="faq">
+      <div class="section-inner">
+        <header class="section-header">
+          <h2 class="section-title">FAQ</h2>
+        </header>
+        <div class="faq-list">
+          <details class="faq-item" open>
+            <summary>Бесплатный ли клиент?</summary>
+            <div class="faq-content">
+              <p>Да, Nebula Visuals полностью бесплатный.</p>
+            </div>
+          </details>
+          <details class="faq-item">
+            <summary>Для какой версии Minecraft?</summary>
+            <div class="faq-content">
+              <p>На данный момент поддерживается Minecraft 1.21.4 (Fabric).</p>
+            </div>
+          </details>
+          <details class="faq-item">
+            <summary>Нужны ли права администратора?</summary>
+            <div class="faq-content">
+              <p>Установщик работает без админских прав. Сам лаунчер может требовать их для некоторых операций, но в целом используется как есть.</p>
+            </div>
+          </details>
+          <details class="faq-item">
+            <summary>Работает ли на пиратке/лицензии?</summary>
+            <div class="faq-content">
+              <p>Лаунчер поддерживает оффлайн-режим.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
 
-</main>
-
-<footer class="footer" id="footer">
-  <div class="footer-inner">
-    <div class="footer-brand">
-      <span class="brand-mark-small" aria-hidden="true">
-        <img src="/logo-icon.png" alt="NV" class="footer-logo">
-      </span>
-      <span class="footer-title">NebulaVisuals</span>
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <img src="/logo-icon.png" alt="" class="brand-logo">
+          <span class="brand-name">Nebula Visuals</span>
+        </div>
+        <div class="footer-links">
+          <a href="https://t.me/Nebula_visual" target="_blank" rel="noopener">Telegram</a>
+          <a href="https://funpay.com/users/16569412/" target="_blank" rel="noopener">Поддержать</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© <span id="year"></span> Nebula Visuals. Не связан с Mojang / Microsoft.</p>
+      </div>
     </div>
-    <p class="footer-copy">© <span id="year"></span> NebulaVisuals</p>
-    <p class="footer-note">Не связан с Mojang / Microsoft</p>
-  </div>
-</footer>
+  </footer>
 
-<!-- AUTH MODAL -->
-<div class="modal-backdrop" id="auth-modal" hidden role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
-  <div class="modal modal-wide">
-    <button class="modal-close" id="auth-modal-close" aria-label="Закрыть">×</button>
-    
-    <!-- LOGIN TAB -->
-    <div id="auth-login-tab" class="auth-tab active" role="tabpanel" aria-labelledby="auth-login-title">
-      <h3 id="auth-login-title">Вход в аккаунт</h3>
-      <form id="login-form" class="auth-form-inner">
-        <div class="form-group">
-          <label for="modal-login-username">Ник или Email</label>
-          <input type="text" id="modal-login-username" name="login" placeholder="Введите ник или email" required autocomplete="username">
-        </div>
-        <div class="form-group">
-          <label for="modal-login-password">Пароль</label>
-          <input type="password" id="modal-login-password" name="password" placeholder="Введите пароль" required autocomplete="current-password">
-        </div>
-        <div class="form-group">
-          <label for="modal-login-hwid">HWID устройства <span class="label-hint">(подставляется автоматически)</span></label>
-          <input type="text" id="modal-login-hwid" name="hwid" placeholder="Определяется автоматически" maxlength="64" autocomplete="off" readonly>
-        </div>
-        <div class="form-group">
-          <label for="modal-login-code">Код доступа <span class="label-hint">(если аккаунт защищён кодом)</span></label>
-          <input type="text" id="modal-login-code" name="code" placeholder="Оставьте пустым, если код не требуется" maxlength="32" autocomplete="off">
-        </div>
-        <div class="form-row remember-row">
-          <label class="switch-label">
-            <input type="checkbox" id="modal-remember" name="remember" class="switch-input">
-            <span class="switch-track"><span class="switch-knob"></span></span>
-            <span>Запомнить меня</span>
-          </label>
-        </div>
-        <div class="form-error" id="modal-auth-error"></div>
-        <div class="form-ok" id="modal-auth-ok"></div>
-        <button type="submit" class="btn btn-primary btn-lg btn-block" id="modal-login-submit">Войти</button>
-        <p class="modal-switch">Нет аккаунта? <button type="button" class="modal-switch-btn" id="switch-to-register">Зарегистрироваться</button></p>
-      </form>
-    </div>
-    
-    <!-- REGISTER TAB -->
-    <div id="auth-register-tab" class="auth-tab" hidden role="tabpanel" aria-labelledby="auth-register-title">
-      <h3 id="auth-register-title">Регистрация</h3>
-      <form id="register-form" class="auth-form-inner">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="modal-reg-username">Ник в Minecraft</label>
-            <input type="text" id="modal-reg-username" name="username" placeholder="Steve" minlength="3" maxlength="16" required autocomplete="username">
-          </div>
-          <div class="form-group">
-            <label for="modal-reg-email">Email</label>
-            <input type="email" id="modal-reg-email" name="email" placeholder="mail@example.com" required autocomplete="email">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="modal-reg-password">Пароль</label>
-            <input type="password" id="modal-reg-password" name="password" placeholder="Минимум 6 символов" minlength="6" required autocomplete="new-password">
-          </div>
-          <div class="form-group">
-            <label for="modal-reg-password-confirm">Подтвердите пароль</label>
-            <input type="password" id="modal-reg-password-confirm" name="password_confirm" placeholder="Повторите пароль" minlength="6" required autocomplete="new-password">
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="modal-reg-hwid">HWID устройства <span class="label-hint">(подставляется автоматически)</span></label>
-          <input type="text" id="modal-reg-hwid" name="hwid" placeholder="Определяется автоматически" maxlength="64" autocomplete="off" readonly>
-        </div>
-        <div class="form-error" id="modal-register-error"></div>
-        <div class="form-ok" id="modal-register-ok"></div>
-        <button type="submit" class="btn btn-primary btn-lg btn-block" id="modal-register-submit">Зарегистрироваться</button>
-        <p class="modal-switch">Уже есть аккаунт? <button type="button" class="modal-switch-btn" id="switch-to-login">Войти</button></p>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- TOAST -->
-<div class="toast" id="toast" hidden aria-live="polite" aria-atomic="true"></div>
-
-<script src="/chat-backend.js"></script>
-<script src="/app.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
 </body>
+
 </html>
