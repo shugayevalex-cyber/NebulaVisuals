@@ -1214,5 +1214,145 @@
   const yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
+  /* ============ УМНАЯ ЗАГРУЗКА УСТАНОВЩИКА ============ */
+  /* Качаем частями с CDN сайта в несколько потоков — заметно быстрее,
+     чем одно медленное соединение с GitHub Releases. Если что-то не так —
+     прозрачный откат на прямую ссылку GitHub. */
+  const DL = {
+    manifestUrl: '/files/setup.manifest.json',
+    fallbackUrl: 'https://github.com/shugayevalex-cyber/NebulaVisuals/releases/download/v2.0.0/Nebula.Visuals.Setup.2.0.0.exe',
+    streams: 4,
+    running: false,
+    cancelled: false,
+    controllers: [],
+    ui: null
+  };
+
+  function dlUI() {
+    if (DL.ui) return DL.ui;
+    const box = document.createElement('div');
+    box.className = 'dl-progress';
+    box.innerHTML =
+      '<div class="dl-progress-title">Скачиваем установщик…</div>' +
+      '<div class="dl-progress-bar"><div class="dl-progress-fill"></div></div>' +
+      '<div class="dl-progress-meta">' +
+        '<span class="dl-progress-pct">0%</span>' +
+        '<span class="dl-progress-info">подготовка…</span>' +
+        '<button type="button" class="dl-progress-cancel">Отмена</button>' +
+      '</div>' +
+      '<div class="dl-progress-note">Загрузка идёт в несколько потоков с быстрого CDN — обычно заметно быстрее, чем напрямую. Не закрывайте сайт до завершения.</div>';
+    document.body.appendChild(box);
+    box.querySelector('.dl-progress-cancel').addEventListener('click', () => {
+      DL.cancelled = true;
+      DL.controllers.forEach(c => { try { c.abort(); } catch (e) { /* noop */ } });
+    });
+    DL.ui = box;
+    return box;
+  }
+
+  function fmtMB(bytes) { return (bytes / 1048576).toFixed(1); }
+
+  function dlRender(doneBytes, totalBytes, t0) {
+    if (!DL.ui) return;
+    const pct = Math.min(100, Math.round(doneBytes / totalBytes * 100));
+    DL.ui.querySelector('.dl-progress-fill').style.width = pct + '%';
+    DL.ui.querySelector('.dl-progress-pct').textContent = pct + '%';
+    const secs = Math.max(0.25, (performance.now() - t0) / 1000);
+    const speed = doneBytes / secs / 1048576;
+    DL.ui.querySelector('.dl-progress-info').textContent =
+      fmtMB(doneBytes) + ' из ' + fmtMB(totalBytes) + ' МБ · ' + speed.toFixed(1) + ' МБ/с';
+  }
+
+  async function dlRange(task, buffers, onBytes) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const ctrl = new AbortController();
+      DL.controllers.push(ctrl);
+      try {
+        const r = await fetch(task.url, {
+          headers: { Range: 'bytes=' + task.start + '-' + task.end },
+          cache: 'no-store',
+          signal: ctrl.signal
+        });
+        if (r.status !== 206 && r.status !== 200) throw new Error('HTTP ' + r.status);
+        if (r.status === 200 && task.start !== 0) throw new Error('сервер не поддерживает Range');
+        const reader = r.body.getReader();
+        let pos = task.offset;
+        while (true) {
+          if (DL.cancelled) { try { ctrl.abort(); } catch (e) { /* noop */ } throw new Error('cancelled'); }
+          const chunk = await reader.read();
+          if (chunk.done) break;
+          buffers[task.part].set(chunk.value, pos);
+          pos += chunk.value.length;
+          onBytes(chunk.value.length);
+        }
+        if (pos !== task.end + 1) throw new Error('недокачан диапазон');
+        return;
+      } catch (err) {
+        if (DL.cancelled || (err && err.name === 'AbortError')) throw new Error('cancelled');
+        if (attempt === 1) throw err;
+      }
+    }
+  }
+
+  async function smartDownload(ev) {
+    if (ev) ev.preventDefault();
+    if (DL.running) return false;
+    DL.running = true; DL.cancelled = false; DL.controllers = [];
+    const box = dlUI();
+    box.classList.add('visible');
+    box.querySelector('.dl-progress-title').textContent = 'Скачиваем установщик…';
+    try {
+      const mres = await fetch(DL.manifestUrl, { cache: 'no-store' });
+      if (!mres.ok) throw new Error('манифест недоступен');
+      const m = await mres.json();
+      const buffers = m.parts.map(p => new Uint8Array(p.size));
+      const tasks = [];
+      m.parts.forEach((p, pi) => {
+        const per = Math.ceil(p.size / DL.streams);
+        for (let i = 0; i < DL.streams; i++) {
+          const start = i * per;
+          if (start >= p.size) break;
+          const end = Math.min(p.size, start + per) - 1;
+          tasks.push({ url: p.url, part: pi, start: start, end: end, offset: start });
+        }
+      });
+      let received = 0;
+      const t0 = performance.now();
+      await Promise.all(tasks.map(t => dlRange(t, buffers, n => {
+        received += n;
+        dlRender(received, m.size, t0);
+      })));
+      if (DL.cancelled) throw new Error('cancelled');
+      dlRender(m.size, m.size, t0);
+      const blob = new Blob(buffers, { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = m.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 120000);
+      box.querySelector('.dl-progress-title').textContent = 'Готово — установщик скачан ✓';
+      box.querySelector('.dl-progress-info').textContent = 'файл сохранён в загрузки';
+      setTimeout(() => box.classList.remove('visible'), 6000);
+    } catch (err) {
+      if (err && err.message === 'cancelled') {
+        box.classList.remove('visible');
+      } else {
+        console.error('smart download failed, fallback to github', err);
+        window.location.href = DL.fallbackUrl;
+      }
+    } finally {
+      DL.running = false;
+      DL.controllers = [];
+    }
+    return false;
+  }
+
+  document.querySelectorAll('.js-smart-dl').forEach(a => {
+    a.addEventListener('click', smartDownload);
+  });
+
   // AuthState.init() уже вызван выше, до инициализации чата.
 })();

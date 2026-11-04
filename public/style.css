@@ -1608,3 +1608,43 @@ img, svg, video, iframe, canvas { max-width: 100%; }
   .modal-switch-btn:hover { text-decoration: none; }
   .modal-switch-btn:active { text-decoration: underline; }
 }
+
+/* ===== Прогресс умной загрузки установщика ===== */
+.dl-progress {
+  position: fixed;
+  left: 50%; bottom: 24px;
+  width: min(440px, calc(100vw - 32px));
+  transform: translateX(-50%) translateY(16px);
+  z-index: 400;
+  padding: 16px 18px 14px;
+  border-radius: 16px;
+  background: rgba(23, 19, 43, 0.97);
+  border: 1px solid rgba(198, 178, 255, 0.18);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.dl-progress.visible { opacity: 1; transform: translateX(-50%); pointer-events: auto; }
+.dl-progress-title { font-size: 14px; font-weight: 700; color: #f0f2fa; }
+.dl-progress-bar {
+  height: 8px; margin: 10px 0 8px; border-radius: 99px;
+  background: rgba(255, 255, 255, 0.08); overflow: hidden;
+}
+.dl-progress-fill {
+  height: 100%; width: 0%; border-radius: 99px;
+  background: linear-gradient(90deg, #7c5cff, #38e8ff);
+  transition: width 0.2s ease;
+}
+.dl-progress-meta {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  font-size: 12.5px; color: rgba(240, 242, 250, 0.75);
+}
+.dl-progress-pct { font-weight: 700; color: #cdb8ff; }
+.dl-progress-cancel {
+  background: none; border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #fff; border-radius: 8px; padding: 4px 10px;
+  cursor: pointer; font-size: 12px; font-family: inherit;
+}
+.dl-progress-cancel:hover { background: rgba(255, 255, 255, 0.08); }
+.dl-progress-note { margin-top: 8px; font-size: 11.5px; line-height: 1.45; color: rgba(240, 242, 250, 0.5); }

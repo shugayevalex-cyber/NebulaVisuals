@@ -1,0 +1,23 @@
+{
+  "name": "Nebula Visuals Setup 2.0.0.exe",
+  "size": 301870410,
+  "parts": [
+    {
+      "url": "/files/setup.p1.bin",
+      "size": 75467603
+    },
+    {
+      "url": "/files/setup.p2.bin",
+      "size": 75467603
+    },
+    {
+      "url": "/files/setup.p3.bin",
+      "size": 75467603
+    },
+    {
+      "url": "/files/setup.p4.bin",
+      "size": 75467601
+    }
+  ],
+  "fallback": "https://github.com/shugayevalex-cyber/NebulaVisuals/releases/download/v2.0.0/Nebula.Visuals.Setup.2.0.0.exe"
+}
