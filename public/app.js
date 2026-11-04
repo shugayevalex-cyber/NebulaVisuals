@@ -669,7 +669,7 @@
   let mutes = {};         // ник -> { until, rule, label }
   let muteTimer = null;
   const BOT_NICK = 'FilterBotByqqc0d';
-  const BOT_AVATAR = '/bot-avatar.jpg';
+  const BOT_AVATAR = '/bot.svg';
 
   // ---------- МУТЫ ----------
   // muteActive показывает, что мут уже "включился" в интерфейсе.

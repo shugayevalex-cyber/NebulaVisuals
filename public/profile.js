@@ -89,7 +89,7 @@
 
     // role icon
     const roleIcon = document.getElementById('role-icon');
-    if (roleIcon) roleIcon.src = role === 'admin' ? '/icons/admin.png' : '/icons/user.png';
+    if (roleIcon) roleIcon.src = role === 'admin' ? '/role-admin.svg' : '/role-user.svg';
 
     // home panel
     setText('nick-value', user.username);
