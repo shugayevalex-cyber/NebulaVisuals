@@ -1264,25 +1264,21 @@
   }
 
   async function dlRange(task, buffers, onBytes) {
-    // два плана: основной хост и запасной (другой CDN) — суммарно быстрее
-    const plans = [
-      { url: task.url, range: task.range, zeroOk: task.zeroOk },
-      { url: task.altUrl, range: task.altRange, zeroOk: task.altZeroOk }
-    ];
     let lastErr = null;
-    for (let pi = 0; pi < plans.length; pi++) {
+    for (let pi = 0; pi < task.plans.length; pi++) {
+      const plan = task.plans[pi];
       const attempts = pi === 0 ? 2 : 1;
       for (let attempt = 0; attempt < attempts; attempt++) {
         const ctrl = new AbortController();
         DL.controllers.push(ctrl);
         try {
-          const r = await fetch(plans[pi].url, {
-            headers: { Range: plans[pi].range },
+          const r = await fetch(plan.url, {
+            headers: { Range: plan.range },
             cache: 'no-store',
             signal: ctrl.signal
           });
           if (r.status !== 206 && r.status !== 200) throw new Error('HTTP ' + r.status);
-          if (r.status === 200 && !plans[pi].zeroOk) throw new Error('сервер не поддерживает Range');
+          if (r.status === 200 && !plan.zeroOk) throw new Error('сервер не поддерживает Range');
           const reader = r.body.getReader();
           let pos = task.offset;
           while (true) {
@@ -1320,6 +1316,7 @@
       let cum = 0;
       const partStart = m.parts.map(p => { const s = cum; cum += p.size; return s; });
       const originUrl = m.origin || DL.fallbackUrl;
+      const rawBase = (m.rawBase || 'https://raw.githubusercontent.com/shugayevalex-cyber/NebulaVisuals/main') ;
       const tasks = [];
       m.parts.forEach((p, pi) => {
         const per = Math.ceil(p.size / DL.streams);
@@ -1329,17 +1326,17 @@
           const end = Math.min(p.size, start + per) - 1;
           const absStart = partStart[pi] + start;
           const absEnd = partStart[pi] + end;
-          // чередуем хосты: нечётные задачи качаем с GitHub, чётные — с Vercel
-          const useOrigin = (tasks.length % 2 === 1);
-          tasks.push({
-            part: pi, offset: start, start: start, end: end,
-            url: useOrigin ? originUrl : p.url,
-            range: useOrigin ? ('bytes=' + absStart + '-' + absEnd) : ('bytes=' + start + '-' + end),
-            zeroOk: !useOrigin && start === 0 && end === p.size - 1,
-            altUrl: useOrigin ? p.url : originUrl,
-            altRange: useOrigin ? ('bytes=' + start + '-' + end) : ('bytes=' + absStart + '-' + absEnd),
-            altZeroOk: useOrigin && start === 0 && end === p.size - 1
-          });
+          const wholePart = (start === 0 && end === p.size - 1);
+          // три независимых источника: Vercel CDN, raw.githubusercontent, GitHub Releases
+          const sources = [
+            { url: p.url, range: 'bytes=' + start + '-' + end, zeroOk: wholePart },
+            { url: rawBase + p.url, range: 'bytes=' + start + '-' + end, zeroOk: wholePart },
+            { url: originUrl, range: 'bytes=' + absStart + '-' + absEnd, zeroOk: false }
+          ];
+          // чередуем порядок источников между задачами — равномерная нагрузка
+          const rot = tasks.length % sources.length;
+          const plans = sources.slice(rot).concat(sources.slice(0, rot));
+          tasks.push({ part: pi, offset: start, end: end, plans: plans });
         }
       });
       let received = 0;

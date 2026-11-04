@@ -20,5 +20,6 @@
     }
   ],
   "fallback": "https://github.com/shugayevalex-cyber/NebulaVisuals/releases/download/v2.0.0/Nebula.Visuals.Setup.2.0.0.exe",
-  "origin": "https://github.com/shugayevalex-cyber/NebulaVisuals/releases/download/v2.0.0/Nebula.Visuals.Setup.2.0.0.exe"
+  "origin": "https://github.com/shugayevalex-cyber/NebulaVisuals/releases/download/v2.0.0/Nebula.Visuals.Setup.2.0.0.exe",
+  "rawBase": "https://raw.githubusercontent.com/shugayevalex-cyber/NebulaVisuals/main"
 }
