@@ -1327,10 +1327,9 @@
           const absStart = partStart[pi] + start;
           const absEnd = partStart[pi] + end;
           const wholePart = (start === 0 && end === p.size - 1);
-          // четыре независимых источника: Vercel CDN, jsDelivr, raw.githubusercontent, GitHub Releases
+          // три независимых источника: Vercel CDN, raw.githubusercontent, GitHub Releases
           const sources = [
             { url: p.url, range: 'bytes=' + start + '-' + end, zeroOk: wholePart },
-            { url: m.jsdelivrBase + p.url, range: 'bytes=' + start + '-' + end, zeroOk: wholePart },
             { url: rawBase + p.url, range: 'bytes=' + start + '-' + end, zeroOk: wholePart },
             { url: originUrl, range: 'bytes=' + absStart + '-' + absEnd, zeroOk: false }
           ];
