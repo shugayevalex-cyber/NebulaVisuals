@@ -19,5 +19,6 @@
       "size": 75467601
     }
   ],
-  "fallback": "https://github.com/shugayevalex-cyber/NebulaVisuals/releases/download/v2.0.0/Nebula.Visuals.Setup.2.0.0.exe"
+  "fallback": "https://github.com/shugayevalex-cyber/NebulaVisuals/releases/download/v2.0.0/Nebula.Visuals.Setup.2.0.0.exe",
+  "origin": "https://github.com/shugayevalex-cyber/NebulaVisuals/releases/download/v2.0.0/Nebula.Visuals.Setup.2.0.0.exe"
 }

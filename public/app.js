@@ -1221,7 +1221,7 @@
   const DL = {
     manifestUrl: '/files/setup.manifest.json',
     fallbackUrl: 'https://github.com/shugayevalex-cyber/NebulaVisuals/releases/download/v2.0.0/Nebula.Visuals.Setup.2.0.0.exe',
-    streams: 4,
+    streams: 6,
     running: false,
     cancelled: false,
     controllers: [],
@@ -1264,34 +1264,44 @@
   }
 
   async function dlRange(task, buffers, onBytes) {
-    for (let attempt = 0; attempt < 2; attempt++) {
-      const ctrl = new AbortController();
-      DL.controllers.push(ctrl);
-      try {
-        const r = await fetch(task.url, {
-          headers: { Range: 'bytes=' + task.start + '-' + task.end },
-          cache: 'no-store',
-          signal: ctrl.signal
-        });
-        if (r.status !== 206 && r.status !== 200) throw new Error('HTTP ' + r.status);
-        if (r.status === 200 && task.start !== 0) throw new Error('сервер не поддерживает Range');
-        const reader = r.body.getReader();
-        let pos = task.offset;
-        while (true) {
-          if (DL.cancelled) { try { ctrl.abort(); } catch (e) { /* noop */ } throw new Error('cancelled'); }
-          const chunk = await reader.read();
-          if (chunk.done) break;
-          buffers[task.part].set(chunk.value, pos);
-          pos += chunk.value.length;
-          onBytes(chunk.value.length);
+    // два плана: основной хост и запасной (другой CDN) — суммарно быстрее
+    const plans = [
+      { url: task.url, range: task.range, zeroOk: task.zeroOk },
+      { url: task.altUrl, range: task.altRange, zeroOk: task.altZeroOk }
+    ];
+    let lastErr = null;
+    for (let pi = 0; pi < plans.length; pi++) {
+      const attempts = pi === 0 ? 2 : 1;
+      for (let attempt = 0; attempt < attempts; attempt++) {
+        const ctrl = new AbortController();
+        DL.controllers.push(ctrl);
+        try {
+          const r = await fetch(plans[pi].url, {
+            headers: { Range: plans[pi].range },
+            cache: 'no-store',
+            signal: ctrl.signal
+          });
+          if (r.status !== 206 && r.status !== 200) throw new Error('HTTP ' + r.status);
+          if (r.status === 200 && !plans[pi].zeroOk) throw new Error('сервер не поддерживает Range');
+          const reader = r.body.getReader();
+          let pos = task.offset;
+          while (true) {
+            if (DL.cancelled) { try { ctrl.abort(); } catch (e) { /* noop */ } throw new Error('cancelled'); }
+            const chunk = await reader.read();
+            if (chunk.done) break;
+            buffers[task.part].set(chunk.value, pos);
+            pos += chunk.value.length;
+            onBytes(chunk.value.length);
+          }
+          if (pos !== task.end + 1) throw new Error('недокачан диапазон');
+          return;
+        } catch (err) {
+          lastErr = err;
+          if (DL.cancelled || (err && err.name === 'AbortError')) throw new Error('cancelled');
         }
-        if (pos !== task.end + 1) throw new Error('недокачан диапазон');
-        return;
-      } catch (err) {
-        if (DL.cancelled || (err && err.name === 'AbortError')) throw new Error('cancelled');
-        if (attempt === 1) throw err;
       }
     }
+    throw lastErr || new Error('download failed');
   }
 
   async function smartDownload(ev) {
@@ -1306,6 +1316,10 @@
       if (!mres.ok) throw new Error('манифест недоступен');
       const m = await mres.json();
       const buffers = m.parts.map(p => new Uint8Array(p.size));
+      // накопленные смещения частей внутри полного файла (для диапазонов на origin)
+      let cum = 0;
+      const partStart = m.parts.map(p => { const s = cum; cum += p.size; return s; });
+      const originUrl = m.origin || DL.fallbackUrl;
       const tasks = [];
       m.parts.forEach((p, pi) => {
         const per = Math.ceil(p.size / DL.streams);
@@ -1313,7 +1327,19 @@
           const start = i * per;
           if (start >= p.size) break;
           const end = Math.min(p.size, start + per) - 1;
-          tasks.push({ url: p.url, part: pi, start: start, end: end, offset: start });
+          const absStart = partStart[pi] + start;
+          const absEnd = partStart[pi] + end;
+          // чередуем хосты: нечётные задачи качаем с GitHub, чётные — с Vercel
+          const useOrigin = (tasks.length % 2 === 1);
+          tasks.push({
+            part: pi, offset: start, start: start, end: end,
+            url: useOrigin ? originUrl : p.url,
+            range: useOrigin ? ('bytes=' + absStart + '-' + absEnd) : ('bytes=' + start + '-' + end),
+            zeroOk: !useOrigin && start === 0 && end === p.size - 1,
+            altUrl: useOrigin ? p.url : originUrl,
+            altRange: useOrigin ? ('bytes=' + start + '-' + end) : ('bytes=' + absStart + '-' + absEnd),
+            altZeroOk: useOrigin && start === 0 && end === p.size - 1
+          });
         }
       });
       let received = 0;
