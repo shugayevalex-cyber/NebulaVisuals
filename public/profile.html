@@ -257,7 +257,7 @@ body:has(.shell) { min-height:100vh; }
 
     <div class="sidebar-user">
       <div class="avatar-wrap" id="avatar-wrap" title="Нажмите, чтобы сменить аватар">
-        <img src="/logo-icon.png" alt="Аватар" class="avatar-img" id="avatar-img">
+        <img src="/user-avatar.svg" alt="Аватар" class="avatar-img" id="avatar-img">
         <input type="file" id="avatar-input" accept="image/png,image/jpeg,image/webp" hidden>
         <div class="avatar-edit">✎</div>
       </div>
@@ -315,7 +315,7 @@ body:has(.shell) { min-height:100vh; }
           <span class="panel-label">Роль</span>
           <span class="panel-value" id="role-value">Пользователь</span>
         </div>
-        <div class="panel-note" id="hwid-note">HWID создаётся при первом запуске лаунчера. Привяжите его в разделе «Безопасность», чтобы вход работал только с этого компьютера.</div>
+        <div class="panel-note" id="hwid-note">HWID появляется после первого запуска игры через лаунчер — у каждого компьютера свой, и привязывается к аккаунту автоматически. Привязывать вручную не нужно.</div>
       </div>
 
       <div class="actions">
@@ -338,10 +338,10 @@ body:has(.shell) { min-height:100vh; }
     <section class="tab-content" id="tab-security">
       <div class="panel">
         <h3 class="panel-title">Привязка к устройству (HWID)</h3>
-        <p class="panel-desc">HWID определяется автоматически и подставляется в форму входа. В аккаунте также хранится HWID компьютера из лаунчера — вход в лаунчер работает только с привязанного устройства.</p>
+        <p class="panel-desc">HWID считается лаунчером на каждом компьютере свой — он появляется после первого запуска игры и привязывается к аккаунту автоматически. Вход в лаунчер работает только с привязанного устройства.</p>
         <div class="form-group">
           <label for="hwid-input">HWID устройства</label>
-          <input type="text" id="hwid-input" placeholder="Определяется автоматически" maxlength="64" autocomplete="off" readonly>
+          <input type="text" id="hwid-input" placeholder="Появится после первого запуска игры через лаунчер" maxlength="64" autocomplete="off">
         </div>
         <button class="btn btn-primary" id="save-hwid">Привязать устройство</button>
         <button class="btn btn-danger" id="reset-hwid">Сбросить привязку HWID</button>

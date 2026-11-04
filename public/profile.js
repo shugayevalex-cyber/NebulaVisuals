@@ -77,6 +77,15 @@
 
     // find user in store, else fall back to auth
     let user = users.find(u => u.username === auth.username) || auth;
+    // Миграция: старые «слабо» сгенерированные HWID сбрасываем — HWID появляется только после первого запуска через лаунчер.
+    try {
+      localStorage.removeItem('nebula_device_hwid');
+      if (user && typeof user.hwid === 'string' && /^WEB[0-9A-F]{8,13}$/i.test(user.hwid.trim())) {
+        user.hwid = '';
+        updateUser(user);
+        saveAuth(user);
+      }
+    } catch (e) { /* ignore */ }
     const role = roleOf(user);
 
     // avatar
@@ -85,7 +94,7 @@
     setStatus(role);
     const avatar = user.avatar || '';
     const avatarImg = document.getElementById('avatar-img');
-    if (avatarImg) avatarImg.src = avatar || '/logo-icon.png';
+    if (avatarImg) avatarImg.src = avatar || '/user-avatar.svg';
 
     // role icon
     const roleIcon = document.getElementById('role-icon');
@@ -179,7 +188,7 @@
             user.avatarSmall = '';
             if (!updateUser(user)) { toast('Не хватит места для аватара'); return; }
             saveAuth(user);
-            if (avatarImg) avatarImg.src = '/logo-icon.png';
+            if (avatarImg) avatarImg.src = '/user-avatar.svg';
             toast('Не удалось прочитать картинку');
           };
           img.src = full;
@@ -233,31 +242,8 @@
       toast('HWID привязан');
     });
 
-    // HWID устройства определяется автоматически
-    const deviceHwid = (function () {
-      try {
-        const saved = localStorage.getItem('nebula_device_hwid');
-        if (saved) return saved;
-      } catch (e) { /* ignore */ }
-      const parts = [];
-      try {
-        parts.push(navigator.userAgent || '');
-        parts.push(navigator.language || '');
-        parts.push(String(navigator.hardwareConcurrency || 0));
-        parts.push(String(navigator.maxTouchPoints || 0));
-        parts.push(String(screen.width) + 'x' + String(screen.height) + 'x' + String(screen.colorDepth));
-        parts.push(String(new Date().getTimezoneOffset()));
-      } catch (e) { /* ignore */ }
-      let hash = 0;
-      const raw = parts.join('|');
-      for (let i = 0; i < raw.length; i++) hash = ((hash << 5) - hash + raw.charCodeAt(i)) | 0;
-      const hwid = 'WEB' + Math.abs(hash).toString(16).toUpperCase().padStart(8, '0') +
-        (Math.abs(hash) % 65536).toString(16).toUpperCase().padStart(4, '0');
-      try { localStorage.setItem('nebula_device_hwid', hwid); } catch (e) { /* ignore */ }
-      return hwid;
-    })();
-    const hwidInputEl = document.getElementById('hwid-input');
-    if (hwidInputEl && !hwidInputEl.value) hwidInputEl.value = deviceHwid;
+    // HWID появляется только после первого запуска игры через лаунчер.
+    // На сайте он не генерируется — поле остаётся пустым, пока лаунчер не привяжет устройство.
 
     // Сброс привязки HWID (на сервере)
     const resetHwid = document.getElementById('reset-hwid');

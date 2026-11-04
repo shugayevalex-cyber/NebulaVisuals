@@ -7,44 +7,10 @@
   /* ================= AUTH STATE ================= */
   const USERS_KEY = 'nebula_users';
   const AUTH_KEY = 'nebula_auth';
-  const DEVICE_KEY = 'nebula_device_hwid';
 
-  // HWID устройства для сайта: стабильный отпечаток браузера.
-  // Считается один раз и сохраняется в localStorage, поэтому не меняется
-  // между перезагрузками — аккаунт остаётся привязанным к этому устройству.
-  function deviceHwid() {
-    try {
-      const saved = localStorage.getItem(DEVICE_KEY);
-      if (saved) return saved;
-    } catch (e) { /* ignore */ }
-    const parts = [];
-    try {
-      parts.push(navigator.userAgent || '');
-      parts.push(navigator.language || '');
-      parts.push(String(navigator.hardwareConcurrency || 0));
-      parts.push(String(navigator.maxTouchPoints || 0));
-      parts.push(String(screen.width) + 'x' + String(screen.height) + 'x' + String(screen.colorDepth));
-      parts.push(String(new Date().getTimezoneOffset()));
-    } catch (e) { /* ignore */ }
-    let hash = 0;
-    const raw = parts.join('|');
-    for (let i = 0; i < raw.length; i++) {
-      hash = ((hash << 5) - hash + raw.charCodeAt(i)) | 0;
-    }
-    const hwid = 'WEB' + Math.abs(hash).toString(16).toUpperCase().padStart(8, '0') +
-      (Math.abs(hash) % 65536).toString(16).toUpperCase().padStart(4, '0');
-    try { localStorage.setItem(DEVICE_KEY, hwid); } catch (e) { /* ignore */ }
-    return hwid;
-  }
-
-  // Автоматически подставляем HWID в поля формы входа/регистрации
-  function autofillHwid() {
-    const h = deviceHwid();
-    ['modal-login-hwid', 'modal-reg-hwid'].forEach(function (id) {
-      const el = document.getElementById(id);
-      if (el && !el.value) el.value = h;
-    });
-  }
+  /* HWID — идентификатор компьютера. Появляется ТОЛЬКО после первого
+     запуска Minecraft через лаунчер: его считает и привязывает лаунчер.
+     На сайте и при регистрации HWID не существует — поля пустые. */
   const ADMIN = { username: 'qqc0d', email: 'shugayevalex@gmail.com' };
   const ADMIN_USERNAMES = ['qqc0d', 'k1ekks', 'qqcoda'];
   const CODER_USERNAMES = ['qqc0d'];
@@ -113,6 +79,21 @@
         const saved = localStorage.getItem(AUTH_KEY);
         if (saved) this.user = JSON.parse(saved);
       } catch (e) { localStorage.removeItem(AUTH_KEY); }
+      // Миграция: старые аккаунты со «слабой» автогенерацией HWID (WEBxxxx) сбрасываем —
+      // HWID появится только после первого запуска игры через лаунчер.
+      try {
+        localStorage.removeItem('nebula_device_hwid');
+        const list = loadUsers();
+        let changed = false;
+        list.forEach(function (u) {
+          if (u && typeof u.hwid === 'string' && /^WEB[0-9A-F]{8,13}$/i.test(u.hwid.trim())) { u.hwid = ''; changed = true; }
+        });
+        if (changed) saveUsers(list);
+        if (this.user && typeof this.user.hwid === 'string' && /^WEB[0-9A-F]{8,13}$/i.test(this.user.hwid.trim())) {
+          this.user.hwid = '';
+          this.save();
+        }
+      } catch (e) { /* ignore */ }
       this.updateUI();
       this.bindModals();
     },
@@ -167,7 +148,7 @@
         if (navProfile) navProfile.style.display = 'flex';
         // avatar: show image if set, else logo
         const avImg = document.getElementById('nav-avatar-img');
-        if (avImg) avImg.src = myAvatarFull() || '/logo-icon.png';
+        if (avImg) avImg.src = myAvatarFull() || '/user-avatar.svg';
         setText('nav-profile-name', u.username);
       } else {
         if (navAuth) navAuth.style.display = 'flex';
@@ -184,7 +165,7 @@
       const toReg = document.getElementById('switch-to-register');
       const toLogin = document.getElementById('switch-to-login');
 
-      function open() { if (!modal) return; modal.hidden = false; modal.style.display = 'flex'; document.body.style.overflow = 'hidden'; switchTab('login'); autofillHwid(); }
+      function open() { if (!modal) return; modal.hidden = false; modal.style.display = 'flex'; document.body.style.overflow = 'hidden'; switchTab('login'); }
       function close() { if (!modal) return; modal.hidden = true; modal.style.display = 'none'; document.body.style.overflow = ''; clearErrors(); }
 
       if (openBtn) openBtn.addEventListener('click', open);
@@ -202,7 +183,6 @@
         if (!lt || !rt) return;
         if (target === 'register') { lt.hidden = true; rt.hidden = false; }
         else { rt.hidden = true; lt.hidden = false; }
-        autofillHwid();
         clearErrors();
       }
 
@@ -333,8 +313,6 @@
         const email = document.getElementById('modal-reg-email').value.trim().toLowerCase();
         const password = document.getElementById('modal-reg-password').value;
         const confirm = document.getElementById('modal-reg-password-confirm').value;
-        const hwidRegInput = document.getElementById('modal-reg-hwid');
-        const hwidReg = hwidRegInput ? hwidRegInput.value.trim().toUpperCase() : '';
         if (!username || !email || !password || !confirm) { if (err) err.textContent = 'Заполните все поля'; return; }
         if (username.length < 3 || username.length > 16) { if (err) err.textContent = 'Ник: 3–16 символов'; return; }
         if (!/^[A-Za-z0-9_]+$/.test(username)) { if (err) err.textContent = 'Ник: только латиница, цифры и _'; return; }
@@ -361,7 +339,7 @@
             return;
           }
           // Сервер зарегистрировал аккаунт (или недоступен) — сохраняем локально
-          const user = { username, email, password, ram: 4096, avatar: '', hwid: hwidReg, hwidResets: 0, joined: new Date().toISOString() };
+          const user = { username, email, password, ram: 4096, avatar: '', hwid: '', hwidResets: 0, joined: new Date().toISOString() };
           users.push(user);
           if (!saveUsers(users)) {
             users.pop();
@@ -369,10 +347,7 @@
             btn.disabled = false; btn.textContent = 'Зарегистрироваться';
             return;
           }
-          // Привязываем устройство к аккаунту на сервере
-          if (window.ChatBackend && window.ChatBackend.auth && hwidReg) {
-            try { window.ChatBackend.auth({ op: 'bind', username: username, hwid: hwidReg }); } catch (e) { /* ignore */ }
-          }
+          /* HWID не существует при регистрации — его привязывает лаунчер после первого запуска игры */
           this.register(user);
           if (ok) ok.textContent = 'Регистрация успешна!';
           if (!localStorage.getItem(AUTH_KEY)) {
@@ -385,7 +360,6 @@
           document.getElementById('modal-reg-email').value = '';
           document.getElementById('modal-reg-password').value = '';
           document.getElementById('modal-reg-password-confirm').value = '';
-          if (hwidRegInput) hwidRegInput.value = '';
           setTimeout(() => { switchTab('login'); close(); }, 700);
         }, 600);
       });
@@ -633,7 +607,7 @@
 
   // Маленький аватар 40x40 (для чата и списка онлайн).
   // Если у пользователя дефолтная иконка — используем дефолтную картинку сайта.
-  const DEFAULT_AVATAR = '/logo-icon.png';
+  const DEFAULT_AVATAR = '/user-avatar.svg';
   function myAvatarSmall() {
     const a = AuthState.user;
     if (!a) return Promise.resolve('');
@@ -1021,12 +995,12 @@
       const send = function (av) {
         try {
           if (window.ChatBackend && window.ChatBackend.publish) {
-            window.ChatBackend.publish('presence', { t: 'p', n: nick, a: av || '/logo-icon.png', ts: Date.now() });
+            window.ChatBackend.publish('presence', { t: 'p', n: nick, a: av || '/user-avatar.svg', ts: Date.now() });
           }
         } catch (e) {}
       };
       // сначала быстрый пинг дефолтной иконкой, потом — с настоящей
-      send('/logo-icon.png');
+      send('/user-avatar.svg');
       myAvatarSmall().then(send).catch(function () {});
     } catch (e) {}
   };
@@ -1056,7 +1030,7 @@
         meNick.textContent = nick || 'Войдите';
         meNick.className = 'chat-me-nick ' + (nick ? nickClass(nick, (AuthState.user && AuthState.user.email) || '') : '');
       }
-      if (meAvatar) meAvatar.src = myAvatarFull() || '/logo-icon.png';
+      if (meAvatar) meAvatar.src = myAvatarFull() || '/user-avatar.svg';
       const logged = !!nick;
       if (loginHint) loginHint.hidden = logged;
       if (textInput) textInput.disabled = !logged;

@@ -72,7 +72,7 @@ header.nav {
   background:transparent !important; border:0 !important; box-shadow:none !important;
 }
 header.nav .nav-inner {
-  width:min(1240px, calc(100% - 24px)) !important;
+  width:min(1200px, calc(100% - 48px)) !important;
   min-height:62px !important; margin:0 auto !important;
   padding:8px 22px !important; border-radius:28px !important;
   background:rgba(15,15,24,.97) !important;
@@ -182,8 +182,8 @@ body:has(.shell) { min-height:100vh; }
 
 /* Decorative SVG webs, dangling spiders and floating pumpkins */
 .nv-halloween-decor { position:fixed; inset:0; z-index:35; pointer-events:none; overflow:hidden; }
-.nv-web { position:absolute; top:0; width:clamp(150px,23vw,310px); color:rgba(224,214,255,.7); }
-.nv-web-left { left:0; transform-origin:top left; animation:nv-web-sway 9s ease-in-out infinite; }
+.nv-web { position:absolute; top:0; width:clamp(96px,15vw,210px); color:rgba(224,214,255,.7); }
+.nv-web-left { left:0; width:clamp(90px,12vw,172px) !important; transform-origin:top left; animation:nv-web-sway 9s ease-in-out infinite; }
 .nv-web-right { right:0; transform-origin:top right; animation:nv-web-sway-tr 10s ease-in-out infinite; }
 .nv-web-svg { display:block; width:100%; height:auto; filter:drop-shadow(0 0 7px rgba(155,123,255,.18)); }
 .nv-spider { position:absolute; top:clamp(48px,7vw,88px); left:clamp(28px,5vw,65px); width:42px; color:#15131f; filter:drop-shadow(0 2px 3px rgba(255,255,255,.2)); transform-origin:top center; animation:nv-spider-swing 3.2s ease-in-out infinite; }
@@ -205,16 +205,27 @@ body:has(.shell) { min-height:100vh; }
   .sidebar { width:220px; }
 }
 @media (max-width:640px) {
+  header.nav { padding:0 8px !important; top:6px !important; }
+  header.nav .nav-inner { width:calc(100% - 10px) !important; min-height:52px !important; gap:8px !important; padding:6px 10px !important; border-radius:20px !important; }
+  header.nav .brand-name { font-size:14px !important; }
+  header.nav .brand-logo-icon { width:30px !important; height:30px !important; border-radius:9px !important; }
   header.nav .nav-links { display:none !important; }
-  header.nav .nav-right { margin-left:auto; }
+  header.nav .nav-support { display:none !important; }
+  header.nav .nav-right { margin-left:auto; gap:8px !important; }
+  header.nav .nav-auth { height:34px !important; padding:0 13px !important; font-size:13px !important; }
+  header.nav .nav-tg { width:34px !important; height:34px !important; }
+  header.nav .nav-tg svg { width:26px !important; height:26px !important; }
   .shell { display:block !important; width:calc(100% - 18px) !important; margin:12px auto !important; }
   .sidebar { position:relative; top:auto; width:100% !important; min-height:0; margin-bottom:14px; }
   .main { padding:0 0 28px !important; }
   .topbar { padding:16px !important; }
   .panel { padding:18px !important; }
-  .nv-web { width:clamp(120px,34vw,190px); opacity:.8; }
-  .nv-spider { width:30px; top:48px; }
-  .nv-pumpkin-wrap { width:66px; bottom:5px; }
+  .chat-box { grid-template-columns:1fr !important; gap:12px !important; }
+  .chat-rules-side, .chat-online { display:none; }
+  .nv-web { width:clamp(84px,26vw,150px) !important; opacity:.75; }
+  .nv-spider { width:26px; top:44px; }
+  .nv-pumpkin-wrap { width:56px; bottom:3px; }
+  .footer-pumpkin { display:none !important; }
 }
 /* ===== Header fixes: alignment, brand, TG icon, login button ===== */
 .brand { flex:0 0 auto !important; min-width:0 !important; gap:12px !important; }
@@ -353,7 +364,7 @@ body:has(.shell) { min-height:100vh; }
       <!-- Profile link (shown when logged in) — opens profile.html -->
       <a class="nav-profile-link" id="nav-profile-link" href="/profile.html" aria-label="Профиль" style="display:none">
         <span class="nav-profile-avatar" id="nav-profile-avatar">
-          <img src="/logo-icon.png" alt="" class="nav-avatar-img" id="nav-avatar-img">
+          <img src="/user-avatar.svg" alt="" class="nav-avatar-img" id="nav-avatar-img">
         </span>
         <span class="nav-profile-name" id="nav-profile-name">Профиль</span>
       </a>
@@ -587,7 +598,7 @@ body:has(.shell) { min-height:100vh; }
         </div>
         <div class="chat-input-row" id="chat-input-row">
           <span class="chat-me" id="chat-me">
-            <img src="/logo-icon.png" alt="" class="chat-me-avatar" id="chat-me-avatar">
+            <img src="/user-avatar.svg" alt="" class="chat-me-avatar" id="chat-me-avatar">
             <span class="chat-me-nick" id="chat-me-nick">—</span>
           </span>
           <input type="text" id="chat-text" placeholder="Напиши сообщение..." maxlength="300" autocomplete="off">
@@ -659,8 +670,8 @@ body:has(.shell) { min-height:100vh; }
           <input type="password" id="modal-login-password" name="password" placeholder="Введите пароль" required autocomplete="current-password">
         </div>
         <div class="form-group">
-          <label for="modal-login-hwid">HWID устройства <span class="label-hint">(подставляется автоматически)</span></label>
-          <input type="text" id="modal-login-hwid" name="hwid" placeholder="Определяется автоматически" maxlength="64" autocomplete="off" readonly>
+          <label for="modal-login-hwid">HWID устройства <span class="label-hint">(привяжется после первого запуска через лаунчер)</span></label>
+          <input type="text" id="modal-login-hwid" name="hwid" placeholder="Появится после первого запуска игры через лаунчер" maxlength="64" autocomplete="off" readonly>
         </div>
         <div class="form-group">
           <label for="modal-login-code">Код доступа <span class="label-hint">(если аккаунт защищён кодом)</span></label>
@@ -705,8 +716,8 @@ body:has(.shell) { min-height:100vh; }
           </div>
         </div>
         <div class="form-group">
-          <label for="modal-reg-hwid">HWID устройства <span class="label-hint">(подставляется автоматически)</span></label>
-          <input type="text" id="modal-reg-hwid" name="hwid" placeholder="Определяется автоматически" maxlength="64" autocomplete="off" readonly>
+          <label for="modal-reg-hwid">HWID устройства <span class="label-hint">(привяжется после первого запуска через лаунчер)</span></label>
+          <input type="text" id="modal-reg-hwid" name="hwid" placeholder="Появится после первого запуска игры через лаунчер" maxlength="64" autocomplete="off" readonly>
         </div>
         <div class="form-error" id="modal-register-error"></div>
         <div class="form-ok" id="modal-register-ok"></div>
