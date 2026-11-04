@@ -87,10 +87,15 @@
         let changed = false;
         list.forEach(function (u) {
           if (u && typeof u.hwid === 'string' && /^WEB[0-9A-F]{8,13}$/i.test(u.hwid.trim())) { u.hwid = ''; changed = true; }
+          if (u && u.avatar === '/user-avatar.svg') { u.avatar = ''; changed = true; }
         });
         if (changed) saveUsers(list);
         if (this.user && typeof this.user.hwid === 'string' && /^WEB[0-9A-F]{8,13}$/i.test(this.user.hwid.trim())) {
           this.user.hwid = '';
+          this.save();
+        }
+        if (this.user && this.user.avatar === '/user-avatar.svg') {
+          this.user.avatar = '';
           this.save();
         }
       } catch (e) { /* ignore */ }
@@ -148,7 +153,7 @@
         if (navProfile) navProfile.style.display = 'flex';
         // avatar: show image if set, else logo
         const avImg = document.getElementById('nav-avatar-img');
-        if (avImg) avImg.src = myAvatarFull() || '/user-avatar.svg';
+        if (avImg) avImg.src = myAvatarFull() || '/avatar-nebula.png';
         setText('nav-profile-name', u.username);
       } else {
         if (navAuth) navAuth.style.display = 'flex';
@@ -607,7 +612,7 @@
 
   // Маленький аватар 40x40 (для чата и списка онлайн).
   // Если у пользователя дефолтная иконка — используем дефолтную картинку сайта.
-  const DEFAULT_AVATAR = '/user-avatar.svg';
+  const DEFAULT_AVATAR = '/avatar-nebula.png';
   function myAvatarSmall() {
     const a = AuthState.user;
     if (!a) return Promise.resolve('');
@@ -643,7 +648,7 @@
   let mutes = {};         // ник -> { until, rule, label }
   let muteTimer = null;
   const BOT_NICK = 'FilterBotByqqc0d';
-  const BOT_AVATAR = '/bot.svg';
+  const BOT_AVATAR = '/bot-avatar.jpg';
 
   // ---------- МУТЫ ----------
   // muteActive показывает, что мут уже "включился" в интерфейсе.
@@ -995,12 +1000,12 @@
       const send = function (av) {
         try {
           if (window.ChatBackend && window.ChatBackend.publish) {
-            window.ChatBackend.publish('presence', { t: 'p', n: nick, a: av || '/user-avatar.svg', ts: Date.now() });
+            window.ChatBackend.publish('presence', { t: 'p', n: nick, a: av || '/avatar-nebula.png', ts: Date.now() });
           }
         } catch (e) {}
       };
       // сначала быстрый пинг дефолтной иконкой, потом — с настоящей
-      send('/user-avatar.svg');
+      send('/avatar-nebula.png');
       myAvatarSmall().then(send).catch(function () {});
     } catch (e) {}
   };
@@ -1030,7 +1035,7 @@
         meNick.textContent = nick || 'Войдите';
         meNick.className = 'chat-me-nick ' + (nick ? nickClass(nick, (AuthState.user && AuthState.user.email) || '') : '');
       }
-      if (meAvatar) meAvatar.src = myAvatarFull() || '/user-avatar.svg';
+      if (meAvatar) meAvatar.src = myAvatarFull() || '/avatar-nebula.png';
       const logged = !!nick;
       if (loginHint) loginHint.hidden = logged;
       if (textInput) textInput.disabled = !logged;

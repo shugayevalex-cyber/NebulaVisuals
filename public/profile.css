@@ -20,7 +20,7 @@
 html { scroll-behavior: smooth; }
 
 body {
-  background: var(--bg);
+  background: #0d0d12;
   color: var(--text);
   font-family: "Segoe UI", Inter, system-ui, -apple-system, Roboto, sans-serif;
   line-height: 1.6;
@@ -28,16 +28,10 @@ body {
   overflow-x: hidden;
 }
 
-/* VIDEO BG */
-.bg-video {
-  position: fixed; inset: 0; z-index: -3;
-  width: 100%; height: 100%; object-fit: cover; opacity: 0.3;
-  pointer-events: none;
-}
+/* Фон — ровный тёмный, без видео и размытия */
+.bg-video,
 .bg-overlay {
-  position: fixed; inset: 0; z-index: -2;
-  background: linear-gradient(180deg, rgba(4,5,10,0.82) 0%, rgba(4,5,10,0.95) 100%);
-  pointer-events: none;
+  display: none !important;
 }
 .particles-canvas {
   position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0.35;

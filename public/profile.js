@@ -85,6 +85,11 @@
         updateUser(user);
         saveAuth(user);
       }
+      if (user && user.avatar === '/user-avatar.svg') {
+        user.avatar = '';
+        updateUser(user);
+        saveAuth(user);
+      }
     } catch (e) { /* ignore */ }
     const role = roleOf(user);
 
@@ -94,7 +99,7 @@
     setStatus(role);
     const avatar = user.avatar || '';
     const avatarImg = document.getElementById('avatar-img');
-    if (avatarImg) avatarImg.src = avatar || '/user-avatar.svg';
+    if (avatarImg) avatarImg.src = avatar || '/avatar-nebula.png';
 
     // role icon
     const roleIcon = document.getElementById('role-icon');
@@ -188,7 +193,7 @@
             user.avatarSmall = '';
             if (!updateUser(user)) { toast('Не хватит места для аватара'); return; }
             saveAuth(user);
-            if (avatarImg) avatarImg.src = '/user-avatar.svg';
+            if (avatarImg) avatarImg.src = '/avatar-nebula.png';
             toast('Не удалось прочитать картинку');
           };
           img.src = full;

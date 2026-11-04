@@ -81,7 +81,8 @@ html {
 }
 
 body {
-  background: radial-gradient(ellipse 120% 80% at 50% 0%, #1c1a33 0%, var(--bg) 60%);
+  background: #0d0d12;
+  background-color: #0d0d12;
   color: var(--text);
   font-family: inherit;
   line-height: 1.6;
@@ -99,24 +100,10 @@ button, input, textarea, select, optgroup, label, legend, fieldset {
 }
 
 /* ===== VIDEO BACKGROUND (FIXED - NO PARALLAX) ===== */
-.bg-video {
-  position: fixed; inset: 0; z-index: -3;
-  width: 100%; height: 100%;
-  object-fit: cover;
-  opacity: 0.45;
-  pointer-events: none;
-  /* FIXED - no transform on scroll */
-}
-
+/* Фон страницы — ровный тёмный (без видео и градиентной полосы сверху) */
+.bg-video,
 .bg-overlay {
-  position: fixed; inset: 0; z-index: -2;
-  background:
-    radial-gradient(ellipse 80% 50% at 20% 10%, rgba(74, 158, 255, 0.28), transparent 60%),
-    radial-gradient(ellipse 60% 60% at 80% 90%, rgba(168, 107, 255, 0.26), transparent 60%),
-    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(255, 77, 166, 0.12), transparent 70%),
-    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(168, 107, 255, 0.18), transparent 65%),
-    linear-gradient(180deg, rgba(18,16,31,0.55) 0%, rgba(18,16,31,0.9) 100%);
-  pointer-events: none;
+  display: none !important;
 }
 
 /* Particles Canvas */
