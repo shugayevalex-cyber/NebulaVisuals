@@ -147,21 +147,11 @@ body:has(.shell) { min-height:100vh; }
 
 /* Decorative SVG webs, dangling spiders and floating pumpkins */
 .nv-halloween-decor { position:fixed; inset:0; z-index:35; pointer-events:none; overflow:hidden; }
-.nv-web { position:absolute; top:0; width:clamp(120px,15vw,205px); color:rgba(240,236,255,.95); opacity:1; }
-.nv-web-left { left:0; transform-origin:top left; animation:nv-web-sway 9s ease-in-out infinite; }
-.nv-web-right { right:0; transform-origin:top right; animation:nv-web-sway-tr 10s ease-in-out infinite; }
-.nv-web-svg { display:block; width:100%; height:auto; filter:drop-shadow(0 0 9px rgba(170,135,255,.45)); }
-.nv-web-svg > g:first-child { opacity:.95 !important; stroke-width:1.5; }
-.nv-spider { position:absolute; top:clamp(44px,6vw,72px); left:clamp(24px,4vw,54px); width:34px; color:#c9b8ff; filter:drop-shadow(0 2px 5px rgba(0,0,0,.55)); transform-origin:top center; animation:nv-spider-swing 3.2s ease-in-out infinite; }
-.nv-web-right .nv-spider { left:auto; right:clamp(24px,4vw,54px); animation-delay:-1.5s; }
 .profile-pumpkin-mini { width:48px; height:auto; vertical-align:-8px; margin-left:10px; filter:drop-shadow(0 4px 10px rgba(0,0,0,.4)); animation:nv-pumpkin-float 4.2s ease-in-out infinite; }
 .nv-pumpkin-wrap { position:fixed; bottom:12px; width:clamp(70px,8vw,112px); filter:drop-shadow(0 7px 14px rgba(0,0,0,.38)); }
 .nv-pumpkin-left { left:14px; animation:nv-pumpkin-float 4.2s ease-in-out infinite; }
 .nv-pumpkin-right { right:14px; animation:nv-pumpkin-float 4.2s ease-in-out -2.1s infinite; }
 .nv-pumpkin { width:100%; height:auto; display:block; }
-@keyframes nv-web-sway { 0%,100%{transform:rotate(0)} 50%{transform:rotate(.6deg)} }
-@keyframes nv-web-sway-tr { 0%,100% { transform:rotate(0) } 50% { transform:rotate(-.6deg) } }
-@keyframes nv-spider-swing { 0%,100%{transform:rotate(-5deg)} 50%{transform:rotate(6deg)} }
 @keyframes nv-pumpkin-float { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-8px) rotate(2deg)} }
 @media (max-width:850px) {
   header.nav { padding:0 8px !important; }
@@ -179,12 +169,10 @@ body:has(.shell) { min-height:100vh; }
   .main { padding:0 0 28px !important; }
   .topbar { padding:16px !important; }
   .panel { padding:18px !important; }
-  .nv-web { width:clamp(120px,34vw,190px); opacity:.92; }
-  .nv-spider { width:30px; top:48px; }
   .nv-pumpkin-wrap { width:66px; bottom:5px; }
 }
 @media (prefers-reduced-motion:reduce) {
-  .nv-web,.nv-spider,.nv-pumpkin-wrap { animation:none !important; }
+  .nv-pumpkin-wrap { animation:none !important; }
   html { scroll-behavior:auto; }
 }
 </style>
@@ -192,45 +180,6 @@ body:has(.shell) { min-height:100vh; }
 </head>
 <body>
 <div class="nv-halloween-decor" aria-hidden="true">
-      <div class="nv-web nv-web-left"><svg class="nv-web-svg" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
-      <g fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round">
-        <path d="M0 0 L220 0 M0 0 L212.5 56.9 M0 0 L190.5 110 M0 0 L155.6 155.6 M0 0 L110 190.5 M0 0 L56.9 212.5 M0 0 L0 220"/>
-        <path d="M30 0 A30 30 0 0 1 0 30"/>
-        <path d="M60 0 A60 60 0 0 1 0 60"/>
-        <path d="M90 0 A90 90 0 0 1 0 90"/>
-        <path d="M120 0 A120 120 0 0 1 0 120"/>
-        <path d="M150 0 A150 150 0 0 1 0 150"/>
-        <path d="M180 0 A180 180 0 0 1 0 180"/>
-        <path d="M210 0 A210 210 0 0 1 0 210"/>
-      </g>
-    </svg><svg class="nv-spider" viewBox="0 0 70 90" xmlns="http://www.w3.org/2000/svg">
-      <path d="M35 0 V28" stroke="currentColor" stroke-width="1.4" fill="none"/>
-      <g fill="currentColor" stroke="currentColor" stroke-width="2.8" stroke-linecap="round">
-        <ellipse cx="35" cy="39" rx="8" ry="10"/><circle cx="35" cy="27" r="5"/>
-        <path d="M29 32 L17 25 L10 31 M29 38 L14 37 L7 45 M29 44 L16 52 L12 61 M41 32 L53 25 L60 31 M41 38 L56 37 L63 45 M41 44 L54 52 L58 61" fill="none"/>
-      </g>
-      <circle cx="33" cy="26" r="1" fill="#ffb0c0"/><circle cx="37" cy="26" r="1" fill="#ffb0c0"/>
-    </svg></div>
-      <div class="nv-web nv-web-right"><svg class="nv-web-svg" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
-      <g transform="translate(220 0) scale(-1 1)" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round">
-        <path d="M0 0 L220 0 M0 0 L212.5 56.9 M0 0 L190.5 110 M0 0 L155.6 155.6 M0 0 L110 190.5 M0 0 L56.9 212.5 M0 0 L0 220"/>
-        <path d="M30 0 A30 30 0 0 1 0 30"/>
-        <path d="M60 0 A60 60 0 0 1 0 60"/>
-        <path d="M90 0 A90 90 0 0 1 0 90"/>
-        <path d="M120 0 A120 120 0 0 1 0 120"/>
-        <path d="M150 0 A150 150 0 0 1 0 150"/>
-        <path d="M180 0 A180 180 0 0 1 0 180"/>
-        <path d="M210 0 A210 210 0 0 1 0 210"/>
-      </g>
-      <circle cx="150" cy="30" r="1.7" fill="currentColor" opacity=".85"/><circle cx="110" cy="18" r="1.3" fill="currentColor" opacity=".75"/><circle cx="175" cy="65" r="1.5" fill="currentColor" opacity=".75"/>
-    </svg><svg class="nv-spider" viewBox="0 0 70 90" xmlns="http://www.w3.org/2000/svg">
-      <path d="M35 0 V28" stroke="currentColor" stroke-width="1.4" fill="none"/>
-      <g fill="currentColor" stroke="currentColor" stroke-width="2.8" stroke-linecap="round">
-        <ellipse cx="35" cy="39" rx="8" ry="10"/><circle cx="35" cy="27" r="5"/>
-        <path d="M29 32 L17 25 L10 31 M29 38 L14 37 L7 45 M29 44 L16 52 L12 61 M41 32 L53 25 L60 31 M41 38 L56 37 L63 45 M41 44 L54 52 L58 61" fill="none"/>
-      </g>
-      <circle cx="33" cy="26" r="1" fill="#ff4d4d"/><circle cx="37" cy="26" r="1" fill="#ff4d4d"/>
-    </svg></div>
       <div class="nv-pumpkin-wrap nv-pumpkin-left"><svg class="nv-pumpkin" viewBox="0 0 140 120" xmlns="http://www.w3.org/2000/svg">
       <path d="M67 26 C60 9 73 4 84 8 C77 14 77 20 80 28" fill="#668c42" stroke="#34502b" stroke-width="3"/>
       <path d="M70 25 C42 12 15 34 17 69 C18 102 40 113 70 111 C101 113 123 102 124 69 C126 34 98 12 70 25Z" fill="#f47c20" stroke="#a94314" stroke-width="4"/>
