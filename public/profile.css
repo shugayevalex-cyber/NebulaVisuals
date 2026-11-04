@@ -17,10 +17,14 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; background: #0b0914; }
 
 body {
-  background: #0d0d12;
+  background:
+    radial-gradient(1100px 480px at 50% -140px, rgba(139, 109, 255, 0.17), transparent 65%),
+    linear-gradient(180deg, #17132b 0%, #121021 38%, #0f0d1a 100%);
+  background-color: #121021;
+  border-radius: 26px 26px 0 0;
   color: var(--text);
   font-family: "Segoe UI", Inter, system-ui, -apple-system, Roboto, sans-serif;
   line-height: 1.6;
