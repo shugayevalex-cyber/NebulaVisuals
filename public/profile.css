@@ -63,13 +63,13 @@ body {
 
 .sidebar-user { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: var(--radius); background: rgba(255,255,255,0.03); border: 1px solid var(--border); }
 
-.avatar-wrap { position: relative; width: 56px; height: 56px; flex-shrink: 0; cursor: pointer; }
-.avatar-img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; display: block; border: 2px solid var(--border-bright); }
+.avatar-wrap { position: relative; width: 84px; height: 84px; flex-shrink: 0; cursor: pointer; }
+.avatar-img { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; display: block; border: 2px solid var(--border-bright); }
 .avatar-edit {
   position: absolute; right: -4px; bottom: -4px;
-  width: 22px; height: 22px; border-radius: 50%;
+  width: 25px; height: 25px; border-radius: 50%;
   background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-  color: #04050a; font-size: 11px; font-weight: 800;
+  color: #04050a; font-size: 12px; font-weight: 800;
   display: flex; align-items: center; justify-content: center;
   border: 2px solid var(--bg);
   pointer-events: none;
@@ -260,8 +260,8 @@ input, textarea { font-size: 16px; } /* iOS не зумит страницу п�
 
   .sidebar-brand { font-size: 15px; }
   .sidebar-user { padding: 8px 12px; gap: 10px; flex: 1 1 auto; min-width: 0; }
-  .avatar-wrap { width: 44px; height: 44px; }
-  .avatar-img { width: 44px; height: 44px; }
+  .avatar-wrap { width: 64px; height: 64px; }
+  .avatar-img { width: 64px; height: 64px; }
 
   .sidebar-nav {
     flex-direction: row;

@@ -98,7 +98,7 @@ body:has(.shell) { min-height:100vh; }
   border-radius:20px !important; background:rgba(255,255,255,.045) !important;
   border:1px solid rgba(255,255,255,.07) !important;
 }
-.avatar-wrap { border:2px solid rgba(169,132,255,.7); box-shadow:0 0 25px rgba(145,104,255,.18); }
+.avatar-wrap { border:0 !important; box-shadow:none !important; border-radius:50%; }
 .sidebar-nav { gap:8px !important; }
 .sidebar-nav .nav-item {
   border-radius:14px !important; padding:13px 14px !important;
@@ -147,10 +147,11 @@ body:has(.shell) { min-height:100vh; }
 
 /* Decorative SVG webs, dangling spiders and floating pumpkins */
 .nv-halloween-decor { position:fixed; inset:0; z-index:35; pointer-events:none; overflow:hidden; }
-.nv-web { position:absolute; top:0; width:clamp(120px,15vw,205px); color:rgba(224,214,255,.6); opacity:.85; }
+.nv-web { position:absolute; top:0; width:clamp(120px,15vw,205px); color:rgba(240,236,255,.95); opacity:1; }
 .nv-web-left { left:0; transform-origin:top left; animation:nv-web-sway 9s ease-in-out infinite; }
 .nv-web-right { right:0; transform-origin:top right; animation:nv-web-sway-tr 10s ease-in-out infinite; }
-.nv-web-svg { display:block; width:100%; height:auto; filter:drop-shadow(0 0 7px rgba(155,123,255,.18)); }
+.nv-web-svg { display:block; width:100%; height:auto; filter:drop-shadow(0 0 9px rgba(170,135,255,.45)); }
+.nv-web-svg > g:first-child { opacity:.95 !important; stroke-width:1.5; }
 .nv-spider { position:absolute; top:clamp(44px,6vw,72px); left:clamp(24px,4vw,54px); width:34px; color:#15131f; filter:drop-shadow(0 2px 3px rgba(255,255,255,.2)); transform-origin:top center; animation:nv-spider-swing 3.2s ease-in-out infinite; }
 .nv-web-right .nv-spider { left:auto; right:clamp(24px,4vw,54px); animation-delay:-1.5s; }
 .profile-pumpkin-mini { width:48px; height:auto; vertical-align:-8px; margin-left:10px; filter:drop-shadow(0 4px 10px rgba(0,0,0,.4)); animation:nv-pumpkin-float 4.2s ease-in-out infinite; }
@@ -178,7 +179,7 @@ body:has(.shell) { min-height:100vh; }
   .main { padding:0 0 28px !important; }
   .topbar { padding:16px !important; }
   .panel { padding:18px !important; }
-  .nv-web { width:clamp(120px,34vw,190px); opacity:.8; }
+  .nv-web { width:clamp(120px,34vw,190px); opacity:.92; }
   .nv-spider { width:30px; top:48px; }
   .nv-pumpkin-wrap { width:66px; bottom:5px; }
 }
