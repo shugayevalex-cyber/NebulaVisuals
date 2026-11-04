@@ -61,7 +61,7 @@
   --nv-blue: #69a8ff;
   --nv-pink: #ff83bc;
 }
-html { scroll-behavior: smooth; background:#0b0914; }
+html { scroll-behavior: smooth; background:#16122a; }
 /* Глубокий фиолетово-тёмный фон вместо чистого чёрного + мягкое свечение сверху */
 body {
   background:
@@ -191,11 +191,11 @@ body:has(.shell) { min-height:100vh; }
 
 /* Decorative SVG webs, dangling spiders and floating pumpkins */
 .nv-halloween-decor { position:fixed; inset:0; z-index:35; pointer-events:none; overflow:hidden; }
-.nv-web { position:absolute; top:clamp(74px,10vh,100px); width:clamp(96px,15vw,210px); color:rgba(240,236,255,.95); opacity:1; }
+.nv-web { position:absolute; top:0; width:clamp(96px,15vw,210px); color:rgba(240,236,255,.95); opacity:1; }
 .nv-web-left { left:0; width:clamp(104px,13vw,190px) !important; transform-origin:top left; animation:nv-web-sway 9s ease-in-out infinite; }
 .nv-web-right { right:0; transform-origin:top right; animation:nv-web-sway-tr 10s ease-in-out infinite; }
 .nv-web-svg { display:block; width:100%; height:auto; filter:drop-shadow(0 0 10px rgba(170,135,255,.5)); }
-.nv-spider { position:absolute; top:clamp(48px,7vw,88px); left:clamp(28px,5vw,65px); width:42px; color:#c9b8ff; filter:drop-shadow(0 2px 5px rgba(0,0,0,.55)); transform-origin:top center; animation:nv-spider-swing 3.2s ease-in-out infinite; }
+.nv-spider { position:absolute; top:clamp(64px,9vw,104px); left:clamp(28px,5vw,65px); width:42px; color:#c9b8ff; filter:drop-shadow(0 2px 5px rgba(0,0,0,.55)); transform-origin:top center; animation:nv-spider-swing 3.2s ease-in-out infinite; }
 .nv-web-right .nv-spider { left:auto; right:clamp(28px,5vw,65px); animation-delay:-1.5s; }
 .nv-pumpkin-wrap { position:fixed; bottom:12px; width:clamp(70px,8vw,112px); filter:drop-shadow(0 7px 14px rgba(0,0,0,.38)); }
 .nv-pumpkin-left { left:14px; animation:nv-pumpkin-float 4.2s ease-in-out infinite; }
@@ -232,7 +232,7 @@ body:has(.shell) { min-height:100vh; }
   .chat-box { grid-template-columns:1fr !important; gap:12px !important; }
   .chat-rules-side, .chat-online { display:none; }
   .nv-web { width:clamp(84px,26vw,150px) !important; opacity:.92; }
-  .nv-spider { width:26px; top:44px; }
+  .nv-spider { width:26px; top:40px; }
   .nv-pumpkin-wrap { width:56px; bottom:3px; }
   .footer-pumpkin { display:none !important; }
 }
@@ -267,7 +267,9 @@ header.nav .nav-profile-avatar { box-shadow:0 0 0 2px rgba(169,132,255,.5), 0 0 
 
 /* ===== Mini decor in chat section ===== */
 .chat-box { position:relative; }
-.chat-web-mini { position:absolute; top:-10px; right:10px; width:92px; opacity:.9; pointer-events:none; z-index:2; }
+.chat-web-mini { position:absolute; top:-6px; width:72px; opacity:.85; pointer-events:none; z-index:2; filter:drop-shadow(0 0 7px rgba(170,135,255,.4)); }
+.chat-web-mini.left { left:10px; }
+.chat-web-mini.right { right:10px; transform:scaleX(-1); }
 .chat-pumpkin-mini { position:absolute; bottom:-16px; left:-14px; width:66px; pointer-events:none; z-index:3; filter:drop-shadow(0 6px 14px rgba(0,0,0,.45)); }
 .chat-pumpkin-mini.right { left:auto; right:-14px; bottom:-14px; width:58px; }
 @media (max-width:1060px) { .chat-web-mini,.chat-pumpkin-mini { display:none; } }
@@ -306,7 +308,7 @@ header.nav .nav-profile-avatar { box-shadow:0 0 0 2px rgba(169,132,255,.5), 0 0 
   header.nav .nav-profile-link { min-height:34px !important; padding:3px 8px 3px 4px !important; gap:6px !important; }
   header.nav .nav-profile-avatar { width:28px !important; height:28px !important; }
   header.nav .nav-profile-name { display:none !important; }
-  .nv-web { top:64px !important; }
+  .nv-web { top:0 !important; }
 }
 </style>
 
@@ -607,16 +609,23 @@ header.nav .nav-profile-avatar { box-shadow:0 0 0 2px rgba(169,132,255,.5), 0 0 
       <div class="chat-status" id="chat-status"><span class="chat-status-dot"></span><span id="chat-status-text">подключение...</span></div>
     </div>
     <div class="chat-box">
-      <svg class="chat-web-mini" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <g fill="none" stroke="rgba(190,160,255,.75)" stroke-width="1.4" stroke-linecap="round">
-          <path d="M120 0 L0 0 M120 0 L120 120 M120 0 L40 0 M120 0 L120 44 M120 0 L0 60 M120 0 L0 0 M120 0 L72 0 M120 0 L120 88"/>
-          <path d="M108 12 A16 16 0 0 0 132 26 M92 17 A34 34 0 0 0 139 55 M74 23 A53 53 0 0 0 142 88 M56 28 A75 75 0 0 0 146 112"/>
+      <svg class="chat-web-mini left" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <g fill="none" stroke="rgba(200,172,255,.8)" stroke-width="2" stroke-linecap="round">
+          <path d="M0 0 L120 0 M0 0 L116.9 27 M0 0 L106.9 54.5 M0 0 L89.2 80.3 M0 0 L63.6 101.8 M0 0 L33.1 115.4 M0 0 L0 120"/>
+          <path d="M19 0 Q16 1.8 18.5 4.3 M18.5 4.3 Q15.2 5.5 16.9 8.6 M16.9 8.6 Q13.3 9.1 14.1 12.7 M14.1 12.7 Q10.4 12.4 10.1 16.1 M10.1 16.1 Q6.6 14.8 5.2 18.3 M5.2 18.3 Q2.2 16 0 19 M34 0 Q28.7 3.3 33.1 7.6 M33.1 7.6 Q27.2 9.9 30.3 15.4 M30.3 15.4 Q23.8 16.4 25.3 22.8 M25.3 22.8 Q18.6 22.1 18 28.8 M18 28.8 Q11.8 26.4 9.4 32.7 M9.4 32.7 Q4 28.6 0 34 M51 0 Q43.1 4.9 49.7 11.5 M49.7 11.5 Q40.7 14.8 45.4 23.2 M45.4 23.2 Q35.7 24.6 37.9 34.1 M37.9 34.1 Q27.9 33.2 27 43.3 M27 43.3 Q17.6 39.6 14.1 49 M14.1 49 Q6 42.9 0 51 M70 0 Q59.1 6.7 68.2 15.7 M68.2 15.7 Q55.9 20.4 62.4 31.8 M62.4 31.8 Q49 33.7 52 46.8 M52 46.8 Q38.2 45.6 37.1 59.4 M37.1 59.4 Q24.2 54.4 19.3 67.3 M19.3 67.3 Q8.3 58.9 0 70 M90 0 Q76 8.7 87.7 20.2 M87.7 20.2 Q71.9 26.2 80.2 40.9 M80.2 40.9 Q63 43.3 66.9 60.2 M66.9 60.2 Q49.2 58.6 47.7 76.3 M47.7 76.3 Q31.1 69.9 24.8 86.5 M24.8 86.5 Q10.6 75.8 0 90 M110 0 Q92.9 10.6 107.2 24.7 M107.2 24.7 Q87.9 32 98 49.9 M98 49.9 Q77.1 53 81.7 73.6 M81.7 73.6 Q60.1 71.6 58.3 93.3 M58.3 93.3 Q38 85.4 30.3 105.7 M30.3 105.7 Q13 92.6 0 110"/>
         </g>
-        <circle cx="98" cy="16" r="1.6" fill="rgba(190,160,255,.85)"/>
-        <path d="M104 36 V58" stroke="rgba(190,160,255,.75)" stroke-width="1.2"/>
-        <ellipse cx="104" cy="63" rx="4" ry="4.8" fill="#15131f"/><circle cx="104" cy="56.5" r="2.8" fill="#15131f"/>
-        <path d="M101.4 59 L97.5 56.4 M101.6 62 L96.8 62.4 M106.6 59 L110.5 56.4 M106.4 62 L111.2 62.4" stroke="#15131f" stroke-width="1.4" stroke-linecap="round"/>
-        <circle cx="103" cy="56" r=".7" fill="#ff3d3d"/><circle cx="105" cy="56" r=".7" fill="#ff3d3d"/>
+        <g fill="#d9ccff" opacity=".9">
+          <circle cx="31.9" cy="11.6" r="1.3"/><circle cx="42" cy="28.9" r="1.3"/><circle cx="28.5" cy="63.9" r="1.3"/><circle cx="58.5" cy="68.4" r="1.3"/><circle cx="69.3" cy="9.7" r="1.3"/><circle cx="7.1" cy="50.5" r="1.3"/>
+        </g>
+      </svg>
+      <svg class="chat-web-mini right" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <g fill="none" stroke="rgba(200,172,255,.8)" stroke-width="2" stroke-linecap="round">
+          <path d="M0 0 L120 0 M0 0 L116.9 27 M0 0 L106.9 54.5 M0 0 L89.2 80.3 M0 0 L63.6 101.8 M0 0 L33.1 115.4 M0 0 L0 120"/>
+          <path d="M19 0 Q16 1.8 18.5 4.3 M18.5 4.3 Q15.2 5.5 16.9 8.6 M16.9 8.6 Q13.3 9.1 14.1 12.7 M14.1 12.7 Q10.4 12.4 10.1 16.1 M10.1 16.1 Q6.6 14.8 5.2 18.3 M5.2 18.3 Q2.2 16 0 19 M34 0 Q28.7 3.3 33.1 7.6 M33.1 7.6 Q27.2 9.9 30.3 15.4 M30.3 15.4 Q23.8 16.4 25.3 22.8 M25.3 22.8 Q18.6 22.1 18 28.8 M18 28.8 Q11.8 26.4 9.4 32.7 M9.4 32.7 Q4 28.6 0 34 M51 0 Q43.1 4.9 49.7 11.5 M49.7 11.5 Q40.7 14.8 45.4 23.2 M45.4 23.2 Q35.7 24.6 37.9 34.1 M37.9 34.1 Q27.9 33.2 27 43.3 M27 43.3 Q17.6 39.6 14.1 49 M14.1 49 Q6 42.9 0 51 M70 0 Q59.1 6.7 68.2 15.7 M68.2 15.7 Q55.9 20.4 62.4 31.8 M62.4 31.8 Q49 33.7 52 46.8 M52 46.8 Q38.2 45.6 37.1 59.4 M37.1 59.4 Q24.2 54.4 19.3 67.3 M19.3 67.3 Q8.3 58.9 0 70 M90 0 Q76 8.7 87.7 20.2 M87.7 20.2 Q71.9 26.2 80.2 40.9 M80.2 40.9 Q63 43.3 66.9 60.2 M66.9 60.2 Q49.2 58.6 47.7 76.3 M47.7 76.3 Q31.1 69.9 24.8 86.5 M24.8 86.5 Q10.6 75.8 0 90 M110 0 Q92.9 10.6 107.2 24.7 M107.2 24.7 Q87.9 32 98 49.9 M98 49.9 Q77.1 53 81.7 73.6 M81.7 73.6 Q60.1 71.6 58.3 93.3 M58.3 93.3 Q38 85.4 30.3 105.7 M30.3 105.7 Q13 92.6 0 110"/>
+        </g>
+        <g fill="#d9ccff" opacity=".9">
+          <circle cx="31.9" cy="11.6" r="1.3"/><circle cx="42" cy="28.9" r="1.3"/><circle cx="28.5" cy="63.9" r="1.3"/><circle cx="58.5" cy="68.4" r="1.3"/><circle cx="69.3" cy="9.7" r="1.3"/><circle cx="7.1" cy="50.5" r="1.3"/>
+        </g>
       </svg>
       <svg class="chat-pumpkin-mini" viewBox="0 0 140 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <path d="M67 26 C60 9 73 4 84 8 C77 14 77 20 80 28" fill="#668c42" stroke="#34502b" stroke-width="4"/>
