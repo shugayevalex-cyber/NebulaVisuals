@@ -182,12 +182,12 @@ body:has(.shell) { min-height:100vh; }
 
 /* Decorative SVG webs, dangling spiders and floating pumpkins */
 .nv-halloween-decor { position:fixed; inset:0; z-index:35; pointer-events:none; overflow:hidden; }
-.nv-web { position:absolute; top:0; width:clamp(96px,15vw,210px); color:rgba(240,236,255,.95); opacity:1; }
+.nv-web { position:absolute; top:clamp(74px,10vh,100px); width:clamp(96px,15vw,210px); color:rgba(240,236,255,.95); opacity:1; }
 .nv-web-left { left:0; width:clamp(90px,12vw,172px) !important; transform-origin:top left; animation:nv-web-sway 9s ease-in-out infinite; }
 .nv-web-right { right:0; transform-origin:top right; animation:nv-web-sway-tr 10s ease-in-out infinite; }
 .nv-web-svg { display:block; width:100%; height:auto; filter:drop-shadow(0 0 9px rgba(170,135,255,.45)); }
 .nv-web-svg > g:first-child { opacity:.95 !important; stroke-width:1.5; }
-.nv-spider { position:absolute; top:clamp(48px,7vw,88px); left:clamp(28px,5vw,65px); width:42px; color:#15131f; filter:drop-shadow(0 2px 3px rgba(255,255,255,.2)); transform-origin:top center; animation:nv-spider-swing 3.2s ease-in-out infinite; }
+.nv-spider { position:absolute; top:clamp(48px,7vw,88px); left:clamp(28px,5vw,65px); width:42px; color:#c9b8ff; filter:drop-shadow(0 2px 5px rgba(0,0,0,.55)); transform-origin:top center; animation:nv-spider-swing 3.2s ease-in-out infinite; }
 .nv-web-right .nv-spider { left:auto; right:clamp(28px,5vw,65px); animation-delay:-1.5s; }
 .nv-pumpkin-wrap { position:fixed; bottom:12px; width:clamp(70px,8vw,112px); filter:drop-shadow(0 7px 14px rgba(0,0,0,.38)); }
 .nv-pumpkin-left { left:14px; animation:nv-pumpkin-float 4.2s ease-in-out infinite; }
@@ -243,6 +243,19 @@ body:has(.shell) { min-height:100vh; }
 .nav-tg svg { display:block !important; }
 .nav-tg svg { width:20px !important; height:20px !important; display:block !important; }
 .nav-auth { height:38px !important; border-radius:999px !important; padding:0 18px !important; align-items:center !important; }
+header.nav .nav-profile-avatar { box-shadow:0 0 0 2px rgba(169,132,255,.5), 0 0 16px rgba(145,104,255,.3) !important; }
+
+/* На широких экранах меню строго по центру капсулы */
+@media (min-width:1300px) {
+  header.nav .brand { flex:1 1 0 !important; }
+  header.nav .nav-right { flex:1 1 0 !important; justify-content:flex-end !important; }
+  header.nav .nav-links { flex:0 0 auto !important; margin:0 !important; }
+}
+
+/* Планшеты: кнопки прижаты вправо, а не висят после логотипа */
+@media (max-width:900px) {
+  header.nav .nav-right { margin-left:auto !important; }
+}
 
 /* ===== Mini decor in chat section ===== */
 .chat-box { position:relative; }
@@ -259,20 +272,49 @@ body:has(.shell) { min-height:100vh; }
   .nv-web,.nv-spider,.nv-pumpkin-wrap,.file-download-pumpkin { animation:none !important; }
   html { scroll-behavior:auto; }
 }
+
+/* ===== Mobile header: show every button (support, Telegram, login/profile) ===== */
+@media (max-width:640px) {
+  header.nav { padding:0 6px !important; top:6px !important; }
+  header.nav .nav-inner {
+    width:calc(100% - 8px) !important; min-height:52px !important;
+    gap:6px !important; padding:6px 8px !important; border-radius:18px !important;
+  }
+  header.nav .brand { gap:8px !important; }
+  header.nav .brand-name { font-size:13px !important; }
+  header.nav .brand-logo-icon { width:28px !important; height:28px !important; border-radius:8px !important; }
+  header.nav .nav-links { display:none !important; }
+  header.nav .nav-support {
+    display:inline-flex !important; width:34px !important; height:34px !important;
+    min-width:34px !important; padding:0 !important; justify-content:center !important;
+    border-radius:50% !important;
+  }
+  header.nav .nav-support-text { display:none !important; }
+  header.nav .nav-support-heart { font-size:15px !important; }
+  header.nav .nav-right { margin-left:auto !important; gap:6px !important; }
+  header.nav .nav-auth { height:34px !important; padding:0 12px !important; font-size:12.5px !important; }
+  header.nav .nav-tg { width:34px !important; height:34px !important; }
+  header.nav .nav-tg svg { width:24px !important; height:24px !important; }
+  header.nav .nav-profile-link { min-height:34px !important; padding:3px 8px 3px 4px !important; gap:6px !important; }
+  header.nav .nav-profile-avatar { width:28px !important; height:28px !important; }
+  header.nav .nav-profile-name { display:none !important; }
+  .nv-web { top:64px !important; }
+}
 </style>
 
 </head>
 <body>
 <div class="nv-halloween-decor" aria-hidden="true">
-      <div class="nv-web nv-web-left"><svg class="nv-web-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
-      <g fill="none" stroke="currentColor" stroke-width="1.25" opacity=".78">
-        <path d="M0 0 L300 0 M0 0 L0 300 M0 0 L300 300 M0 0 L300 150 M0 0 L150 300 M0 0 L210 300 M0 0 L300 220"/>
-        <path d="M0 38 Q30 8 60 38 Q90 68 120 38 Q150 8 180 38 Q210 68 240 38 Q270 8 300 38"/>
-        <path d="M0 78 Q38 40 76 78 Q114 116 152 78 Q190 40 228 78 Q266 116 300 78"/>
-        <path d="M0 120 Q48 72 96 120 Q144 168 192 120 Q240 72 288 120"/>
-        <path d="M0 166 Q58 108 116 166 Q174 224 232 166 Q266 132 300 166"/>
-        <path d="M0 218 Q68 150 136 218 Q204 286 272 218"/>
-        <path d="M0 270 Q76 194 152 270"/>
+      <div class="nv-web nv-web-left"><svg class="nv-web-svg" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+      <g fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round">
+        <path d="M0 0 L220 0 M0 0 L212.5 56.9 M0 0 L190.5 110 M0 0 L155.6 155.6 M0 0 L110 190.5 M0 0 L56.9 212.5 M0 0 L0 220"/>
+        <path d="M30 0 A30 30 0 0 1 0 30"/>
+        <path d="M60 0 A60 60 0 0 1 0 60"/>
+        <path d="M90 0 A90 90 0 0 1 0 90"/>
+        <path d="M120 0 A120 120 0 0 1 0 120"/>
+        <path d="M150 0 A150 150 0 0 1 0 150"/>
+        <path d="M180 0 A180 180 0 0 1 0 180"/>
+        <path d="M210 0 A210 210 0 0 1 0 210"/>
       </g>
     </svg><svg class="nv-spider" viewBox="0 0 70 90" xmlns="http://www.w3.org/2000/svg">
       <path d="M35 0 V28" stroke="currentColor" stroke-width="1.4" fill="none"/>
@@ -282,19 +324,25 @@ body:has(.shell) { min-height:100vh; }
       </g>
       <circle cx="33" cy="26" r="1" fill="#ffb0c0"/><circle cx="37" cy="26" r="1" fill="#ffb0c0"/>
     </svg></div>
-      <div class="nv-web nv-web-right"><svg class="nv-web-svg" viewBox="0 0 260 250" xmlns="http://www.w3.org/2000/svg">
-      <g fill="none" stroke="currentColor" stroke-width="1.3" opacity=".82" stroke-linecap="round">
-        <path d="M260 0 L0 0 M260 0 L260 250 M260 0 L170 0 M260 0 L260 140 M260 0 L150 0 M260 0 L260 90 M260 0 L90 0 M260 0 L260 45 M260 0 L220 0 M260 0 L260 195 M260 0 L60 0 M260 0 L260 250"/>
-        <path d="M224 14 A46 46 0 0 1 246 40 M200 24 A78 78 0 0 1 250 76 M176 34 A110 110 0 0 1 254 112 M150 45 A142 142 0 0 1 258 150 M124 56 A176 176 0 0 1 260 192 M100 68 A206 206 0 0 1 262 230"/>
-        <path d="M236 3 A20 20 0 0 1 252 22 M260 0 L300 60"/>
+      <div class="nv-web nv-web-right"><svg class="nv-web-svg" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(220 0) scale(-1 1)" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round">
+        <path d="M0 0 L220 0 M0 0 L212.5 56.9 M0 0 L190.5 110 M0 0 L155.6 155.6 M0 0 L110 190.5 M0 0 L56.9 212.5 M0 0 L0 220"/>
+        <path d="M30 0 A30 30 0 0 1 0 30"/>
+        <path d="M60 0 A60 60 0 0 1 0 60"/>
+        <path d="M90 0 A90 90 0 0 1 0 90"/>
+        <path d="M120 0 A120 120 0 0 1 0 120"/>
+        <path d="M150 0 A150 150 0 0 1 0 150"/>
+        <path d="M180 0 A180 180 0 0 1 0 180"/>
+        <path d="M210 0 A210 210 0 0 1 0 210"/>
       </g>
-      <circle cx="216" cy="31" r="1.7" fill="currentColor" opacity=".8"/><circle cx="186" cy="17" r="1.3" fill="currentColor" opacity=".7"/><circle cx="240" cy="62" r="1.5" fill="currentColor" opacity=".7"/>
-      <g transform="translate(208 84)">
-        <path d="M0 0 V26" stroke="currentColor" stroke-width="1.4" fill="none"/>
-        <ellipse cx="0" cy="34" rx="7.2" ry="8.6" fill="currentColor"/><circle cx="0" cy="23.4" r="4.6" fill="currentColor"/>
-        <path d="M-5.4 26 L-14 20 M-5.8 32.5 L-15 32 M-5.6 38 L-13 45 M5.4 26 L14 20 M5.8 32.5 L15 32 M5.6 38 L13 45" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
-        <path d="M-2.6 22.6 L-1.4 24.3 M2.6 22.6 L1.4 24.3" stroke="#ff4d4d" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+      <circle cx="150" cy="30" r="1.7" fill="currentColor" opacity=".85"/><circle cx="110" cy="18" r="1.3" fill="currentColor" opacity=".75"/><circle cx="175" cy="65" r="1.5" fill="currentColor" opacity=".75"/>
+    </svg><svg class="nv-spider" viewBox="0 0 70 90" xmlns="http://www.w3.org/2000/svg">
+      <path d="M35 0 V28" stroke="currentColor" stroke-width="1.4" fill="none"/>
+      <g fill="currentColor" stroke="currentColor" stroke-width="2.8" stroke-linecap="round">
+        <ellipse cx="35" cy="39" rx="8" ry="10"/><circle cx="35" cy="27" r="5"/>
+        <path d="M29 32 L17 25 L10 31 M29 38 L14 37 L7 45 M29 44 L16 52 L12 61 M41 32 L53 25 L60 31 M41 38 L56 37 L63 45 M41 44 L54 52 L58 61" fill="none"/>
       </g>
+      <circle cx="33" cy="26" r="1" fill="#ff4d4d"/><circle cx="37" cy="26" r="1" fill="#ff4d4d"/>
     </svg></div>
       <div class="nv-pumpkin-wrap nv-pumpkin-left"><svg class="nv-pumpkin" viewBox="0 0 140 120" xmlns="http://www.w3.org/2000/svg">
       <path d="M67 26 C60 9 73 4 84 8 C77 14 77 20 80 28" fill="#668c42" stroke="#34502b" stroke-width="3"/>
