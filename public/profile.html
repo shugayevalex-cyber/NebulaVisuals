@@ -147,18 +147,19 @@ body:has(.shell) { min-height:100vh; }
 
 /* Decorative SVG webs, dangling spiders and floating pumpkins */
 .nv-halloween-decor { position:fixed; inset:0; z-index:35; pointer-events:none; overflow:hidden; }
-.nv-web { position:absolute; top:0; width:clamp(150px,23vw,310px); color:rgba(224,214,255,.7); }
+.nv-web { position:absolute; top:0; width:clamp(120px,15vw,205px); color:rgba(224,214,255,.6); opacity:.85; }
 .nv-web-left { left:0; transform-origin:top left; animation:nv-web-sway 9s ease-in-out infinite; }
-.nv-web-right { right:0; transform:scaleX(-1); transform-origin:top right; animation:nv-web-sway-right 10s ease-in-out infinite; }
+.nv-web-right { right:0; transform-origin:top right; animation:nv-web-sway-tr 10s ease-in-out infinite; }
 .nv-web-svg { display:block; width:100%; height:auto; filter:drop-shadow(0 0 7px rgba(155,123,255,.18)); }
-.nv-spider { position:absolute; top:clamp(48px,7vw,88px); left:clamp(28px,5vw,65px); width:42px; color:#15131f; filter:drop-shadow(0 2px 3px rgba(255,255,255,.2)); transform-origin:top center; animation:nv-spider-swing 3.2s ease-in-out infinite; }
-.nv-web-right .nv-spider { left:auto; right:clamp(28px,5vw,65px); animation-delay:-1.5s; }
+.nv-spider { position:absolute; top:clamp(44px,6vw,72px); left:clamp(24px,4vw,54px); width:34px; color:#15131f; filter:drop-shadow(0 2px 3px rgba(255,255,255,.2)); transform-origin:top center; animation:nv-spider-swing 3.2s ease-in-out infinite; }
+.nv-web-right .nv-spider { left:auto; right:clamp(24px,4vw,54px); animation-delay:-1.5s; }
+.profile-pumpkin-mini { width:48px; height:auto; vertical-align:-8px; margin-left:10px; filter:drop-shadow(0 4px 10px rgba(0,0,0,.4)); animation:nv-pumpkin-float 4.2s ease-in-out infinite; }
 .nv-pumpkin-wrap { position:fixed; bottom:12px; width:clamp(70px,8vw,112px); filter:drop-shadow(0 7px 14px rgba(0,0,0,.38)); }
 .nv-pumpkin-left { left:14px; animation:nv-pumpkin-float 4.2s ease-in-out infinite; }
 .nv-pumpkin-right { right:14px; animation:nv-pumpkin-float 4.2s ease-in-out -2.1s infinite; }
 .nv-pumpkin { width:100%; height:auto; display:block; }
 @keyframes nv-web-sway { 0%,100%{transform:rotate(0)} 50%{transform:rotate(.6deg)} }
-@keyframes nv-web-sway-right { 0%,100%{transform:scaleX(-1) rotate(0)} 50%{transform:scaleX(-1) rotate(-.6deg)} }
+@keyframes nv-web-sway-tr { 0%,100% { transform:rotate(0) } 50% { transform:rotate(-.6deg) } }
 @keyframes nv-spider-swing { 0%,100%{transform:rotate(-5deg)} 50%{transform:rotate(6deg)} }
 @keyframes nv-pumpkin-float { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-8px) rotate(2deg)} }
 @media (max-width:850px) {
@@ -208,30 +209,27 @@ body:has(.shell) { min-height:100vh; }
       </g>
       <circle cx="33" cy="26" r="1" fill="#ffb0c0"/><circle cx="37" cy="26" r="1" fill="#ffb0c0"/>
     </svg></div>
-      <div class="nv-web nv-web-right"><svg class="nv-web-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
-      <g fill="none" stroke="currentColor" stroke-width="1.25" opacity=".78">
-        <path d="M0 0 L300 0 M0 0 L0 300 M0 0 L300 300 M0 0 L300 150 M0 0 L150 300 M0 0 L210 300 M0 0 L300 220"/>
-        <path d="M0 38 Q30 8 60 38 Q90 68 120 38 Q150 8 180 38 Q210 68 240 38 Q270 8 300 38"/>
-        <path d="M0 78 Q38 40 76 78 Q114 116 152 78 Q190 40 228 78 Q266 116 300 78"/>
-        <path d="M0 120 Q48 72 96 120 Q144 168 192 120 Q240 72 288 120"/>
-        <path d="M0 166 Q58 108 116 166 Q174 224 232 166 Q266 132 300 166"/>
-        <path d="M0 218 Q68 150 136 218 Q204 286 272 218"/>
-        <path d="M0 270 Q76 194 152 270"/>
+      <div class="nv-web nv-web-right"><svg class="nv-web-svg" viewBox="0 0 260 250" xmlns="http://www.w3.org/2000/svg">
+      <g fill="none" stroke="currentColor" stroke-width="1.3" opacity=".85" stroke-linecap="round">
+        <path d="M260 0 L0 0 M260 0 L260 250 M260 0 L170 0 M260 0 L260 140 M260 0 L150 0 M260 0 L260 90 M260 0 L90 0 M260 0 L260 45 M260 0 L220 0 M260 0 L260 195 M260 0 L60 0 M260 0 L260 250"/>
+        <path d="M224 14 A46 46 0 0 1 246 40 M200 24 A78 78 0 0 1 250 76 M176 34 A110 110 0 0 1 254 112 M150 45 A142 142 0 0 1 258 150 M124 56 A176 176 0 0 1 260 192 M100 68 A206 206 0 0 1 262 230"/>
       </g>
-    </svg><svg class="nv-spider" viewBox="0 0 70 90" xmlns="http://www.w3.org/2000/svg">
-      <path d="M35 0 V28" stroke="currentColor" stroke-width="1.4" fill="none"/>
-      <g fill="currentColor" stroke="currentColor" stroke-width="2.8" stroke-linecap="round">
-        <ellipse cx="35" cy="39" rx="8" ry="10"/><circle cx="35" cy="27" r="5"/>
-        <path d="M29 32 L17 25 L10 31 M29 38 L14 37 L7 45 M29 44 L16 52 L12 61 M41 32 L53 25 L60 31 M41 38 L56 37 L63 45 M41 44 L54 52 L58 61" fill="none"/>
+      <circle cx="216" cy="31" r="1.7" fill="currentColor" opacity=".8"/><circle cx="186" cy="17" r="1.3" fill="currentColor" opacity=".7"/><circle cx="240" cy="62" r="1.5" fill="currentColor" opacity=".7"/>
+      <g transform="translate(208 84)">
+        <path d="M0 0 V26" stroke="currentColor" stroke-width="1.4" fill="none"/>
+        <ellipse cx="0" cy="34" rx="7.2" ry="8.6" fill="currentColor"/><circle cx="0" cy="23.4" r="4.6" fill="currentColor"/>
+        <path d="M-5.4 26 L-14 20 M-5.8 32.5 L-15 32 M-5.6 38 L-13 45 M5.4 26 L14 20 M5.8 32.5 L15 32 M5.6 38 L13 45" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <path d="M-2.6 22.6 L-1.4 24.3 M2.6 22.6 L1.4 24.3" stroke="#ff4d4d" stroke-width="1.3" stroke-linecap="round" fill="none"/>
       </g>
-      <circle cx="33" cy="26" r="1" fill="#ffb0c0"/><circle cx="37" cy="26" r="1" fill="#ffb0c0"/>
     </svg></div>
       <div class="nv-pumpkin-wrap nv-pumpkin-left"><svg class="nv-pumpkin" viewBox="0 0 140 120" xmlns="http://www.w3.org/2000/svg">
       <path d="M67 26 C60 9 73 4 84 8 C77 14 77 20 80 28" fill="#668c42" stroke="#34502b" stroke-width="3"/>
       <path d="M70 25 C42 12 15 34 17 69 C18 102 40 113 70 111 C101 113 123 102 124 69 C126 34 98 12 70 25Z" fill="#f47c20" stroke="#a94314" stroke-width="4"/>
       <path d="M70 25 C52 31 47 51 48 74 C49 96 57 107 70 111 C83 107 91 96 92 74 C93 51 88 31 70 25Z" fill="#ff9c32" stroke="#bd5717" stroke-width="3"/>
       <path d="M37 39 C26 54 29 84 42 97 M103 39 C114 54 111 84 98 97" fill="none" stroke="#cf641b" stroke-width="4" stroke-linecap="round"/>
-      <path d="M43 63 L58 73 L44 82 M97 63 L82 73 L96 82 M57 91 Q70 101 83 91" fill="none" stroke="#45202a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M40 58 L57 66 L44 73 M100 58 L83 66 L96 73" fill="#2b0e02"/>
+      <path d="M45 86 L55 80 L64 89 L72 79 L80 89 L88 80 L96 86 L90 96 L76 92 L62 97 L52 93 Z" fill="#2b0e02"/>
+      <circle cx="49" cy="64" r="1.6" fill="#ff3b3b"/><circle cx="91" cy="64" r="1.6" fill="#ff3b3b"/>
     </svg></div>
       <div class="nv-pumpkin-wrap nv-pumpkin-right"><svg class="nv-pumpkin" viewBox="0 0 140 120" xmlns="http://www.w3.org/2000/svg">
       <path d="M67 26 C60 9 73 4 84 8 C77 14 77 20 80 28" fill="#668c42" stroke="#34502b" stroke-width="3"/>
@@ -325,6 +323,12 @@ body:has(.shell) { min-height:100vh; }
           <img src="/icons/download.png" alt="" class="btn-icon-img">
           <span class="btn-text">Скачать файл</span>
         </button>
+        <svg class="profile-pumpkin-mini" viewBox="0 0 140 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M67 26 C60 9 73 4 84 8 C77 14 77 20 80 28" fill="#668c42" stroke="#34502b" stroke-width="4"/>
+          <path d="M70 25 C42 12 15 34 17 69 C18 102 40 113 70 111 C101 113 123 102 124 69 C126 34 98 12 70 25Z" fill="#f47c20" stroke="#a94314" stroke-width="5"/>
+          <path d="M40 58 L57 66 L44 73 M100 58 L83 66 L96 73" fill="#2b0e02"/>
+          <path d="M45 86 L55 80 L64 89 L72 79 L80 89 L88 80 L96 86 L90 96 L76 92 L62 97 L52 93 Z" fill="#2b0e02"/>
+        </svg>
       </div>
 
       <div class="hint" id="profile-hint"></div>
