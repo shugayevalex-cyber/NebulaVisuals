@@ -4,22 +4,38 @@
   "parts": [
     {
       "url": "/files/setup.p1.bin",
-      "size": 75467603
+      "size": 37733802
     },
     {
       "url": "/files/setup.p2.bin",
-      "size": 75467603
+      "size": 37733802
     },
     {
       "url": "/files/setup.p3.bin",
-      "size": 75467603
+      "size": 37733802
     },
     {
       "url": "/files/setup.p4.bin",
-      "size": 75467601
+      "size": 37733802
+    },
+    {
+      "url": "/files/setup.p5.bin",
+      "size": 37733802
+    },
+    {
+      "url": "/files/setup.p6.bin",
+      "size": 37733802
+    },
+    {
+      "url": "/files/setup.p7.bin",
+      "size": 37733802
+    },
+    {
+      "url": "/files/setup.p8.bin",
+      "size": 37733796
     }
   ],
-  "fallback": "https://github.com/shugayevalex-cyber/NebulaVisuals/releases/download/v2.0.0/Nebula.Visuals.Setup.2.0.0.exe",
   "origin": "https://github.com/shugayevalex-cyber/NebulaVisuals/releases/download/v2.0.0/Nebula.Visuals.Setup.2.0.0.exe",
-  "rawBase": "https://raw.githubusercontent.com/shugayevalex-cyber/NebulaVisuals/main"
+  "rawBase": "https://raw.githubusercontent.com/shugayevalex-cyber/NebulaVisuals/main",
+  "jsdelivrBase": "https://cdn.jsdelivr.net/gh/shugayevalex-cyber/NebulaVisuals@main"
 }
